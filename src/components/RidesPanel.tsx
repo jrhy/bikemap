@@ -45,8 +45,8 @@ export function RidesPanel() {
     liveDistance,
     liveElevationGain,
     liveSpeed,
-    liveElevation,
     grade,
+    pausedSeconds,
     startRecording,
     pauseRecording,
     resumeRecording,
@@ -334,7 +334,8 @@ export function RidesPanel() {
               distance={liveDistance}
               elevationGain={liveElevationGain}
               speed={liveSpeed}
-              elevation={liveElevation}
+              grade={grade}
+              pausedSeconds={pausedSeconds}
             />
           ) : (
             <RideHistory
@@ -390,13 +391,52 @@ export function RidesPanel() {
   );
 }
 
-function RecordingStat({ value, label }: { value: string; label: string }) {
+function PrimaryStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex h-full min-h-0 flex-col items-center justify-center rounded-2xl bg-gray-50 p-3 text-center landscape:p-2">
-      <span className="text-[clamp(1.75rem,7vw,4.5rem)] font-bold leading-none tabular-nums tracking-tight text-gray-800 landscape:text-[clamp(1.5rem,4vw,3.75rem)]">
+    <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
+      <span className="text-[clamp(3.5rem,14vw,6.5rem)] font-bold leading-none tabular-nums tracking-tight text-gray-900 landscape:text-[clamp(4rem,6vw,7rem)]">
         {value}
       </span>
-      <span className="mt-2 text-sm font-medium uppercase tracking-wide text-gray-500 landscape:mt-1">
+      <span className="mt-2 text-sm font-medium uppercase tracking-wide text-gray-500">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function SecondaryStat({
+  value,
+  label,
+  caption,
+}: {
+  value: string;
+  label: string;
+  caption?: string;
+}) {
+  return (
+    <div className="flex min-w-0 flex-col items-center justify-center">
+      <span className="text-[clamp(1.75rem,7vw,3.5rem)] font-bold leading-none tabular-nums tracking-tight text-gray-800 landscape:text-3xl">
+        {value}
+      </span>
+      {caption ? (
+        <span className="mt-1 text-xs tabular-nums text-gray-400">
+          {caption}
+        </span>
+      ) : null}
+      <span className="mt-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function TertiaryStat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="flex min-w-0 flex-col items-center">
+      <span className="text-lg font-semibold tabular-nums text-gray-700">
+        {value}
+      </span>
+      <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
         {label}
       </span>
     </div>
@@ -408,7 +448,8 @@ interface RecordingDashboardProps {
   distance: number;
   elevationGain: number;
   speed: number | null;
-  elevation: number | null;
+  grade: number | null;
+  pausedSeconds: number;
 }
 
 function RecordingDashboard({
@@ -416,23 +457,41 @@ function RecordingDashboard({
   distance,
   elevationGain,
   speed,
-  elevation,
+  grade,
+  pausedSeconds,
 }: RecordingDashboardProps) {
+  // Moving time is what elapsedTime already measures (pause-excluded),
+  // so average speed is a pure derivation — no hook state needed.
+  const avgSpeed = elapsedTime > 0 ? distance / elapsedTime : null;
   return (
-    <div className="mx-auto grid h-full w-full max-w-5xl grid-cols-2 grid-rows-3 gap-3 p-4 sm:gap-4 sm:p-6 landscape:grid-cols-5 landscape:grid-rows-1 landscape:items-stretch landscape:gap-3 landscape:p-4">
-      <div className="col-span-2 min-h-0 landscape:col-span-1">
-        <RecordingStat value={formatElapsed(elapsedTime)} label="Time" />
+    <div className="mx-auto flex h-full w-full max-w-3xl flex-col px-6 py-4 landscape:max-w-5xl landscape:flex-row landscape:items-stretch landscape:gap-8 landscape:px-8">
+      <PrimaryStat value={formatDistance(distance)} label="Distance" />
+      <div className="grid grid-cols-2 gap-4 border-t border-gray-200 pt-4 landscape:flex landscape:flex-1 landscape:flex-row landscape:items-center landscape:border-t-0 landscape:border-l landscape:pt-0 landscape:pl-8">
+        <SecondaryStat
+          value={formatElapsed(elapsedTime)}
+          label="Time"
+          caption={
+            pausedSeconds > 0
+              ? `paused ${formatElapsed(pausedSeconds)}`
+              : undefined
+          }
+        />
+        <SecondaryStat
+          value={speed == null ? '— km/h' : formatSpeed(speed)}
+          label="Speed"
+        />
       </div>
-      <RecordingStat value={formatDistance(distance)} label="Distance" />
-      <RecordingStat value={formatElevation(elevationGain)} label="Climbing" />
-      <RecordingStat
-        value={speed == null ? '— km/h' : formatSpeed(speed)}
-        label="Speed"
-      />
-      <RecordingStat
-        value={elevation == null ? '— m' : formatElevation(elevation)}
-        label="Elevation"
-      />
+      <div className="mt-auto grid grid-cols-3 gap-2 border-t border-gray-200 pt-3 landscape:mt-0 landscape:flex landscape:w-64 landscape:flex-none landscape:flex-col landscape:justify-center landscape:gap-3 landscape:border-t-0 landscape:border-l landscape:pt-0 landscape:pl-8">
+        <TertiaryStat
+          value={grade == null ? '—' : formatGrade(grade)}
+          label="Grade"
+        />
+        <TertiaryStat
+          value={avgSpeed == null ? '— km/h' : formatSpeed(avgSpeed)}
+          label="Avg"
+        />
+        <TertiaryStat value={formatElevation(elevationGain)} label="Climbing" />
+      </div>
     </div>
   );
 }

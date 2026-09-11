@@ -109,6 +109,38 @@ describe('RidesPanel', () => {
     expect(screen.getByText('318 m')).toBeInTheDocument();
   });
 
+  it('renders the recording hierarchy with grade and avg speed', () => {
+    mockHook.isRecording = true;
+    mockHook.liveDistance = 12500;
+    mockHook.elapsedTime = 2700;
+    mockHook.grade = 2.4;
+    render(<RidesPanel />);
+    openPanel();
+
+    expect(screen.getByText('12.5 km')).toBeInTheDocument(); // distance primary
+    expect(screen.getByText('+2%')).toBeInTheDocument(); // grade
+    expect(screen.getByText('16.7 km/h')).toBeInTheDocument(); // avg = 12500 m / 2700 s
+    expect(screen.queryByLabelText('Elevation')).not.toBeInTheDocument();
+  });
+
+  it('shows a dash for grade before the window fills', () => {
+    mockHook.isRecording = true;
+    mockHook.grade = null;
+    render(<RidesPanel />);
+    openPanel();
+
+    expect(screen.getByText('—')).toBeInTheDocument();
+  });
+
+  it('shows the paused caption when pause time has accumulated', () => {
+    mockHook.isRecording = true;
+    mockHook.pausedSeconds = 75;
+    render(<RidesPanel />);
+    openPanel();
+
+    expect(screen.getByText('paused 1:15')).toBeInTheDocument();
+  });
+
   it('announces when the full recording dashboard is paused', () => {
     mockHook.isRecording = true;
     mockHook.isPaused = true;
