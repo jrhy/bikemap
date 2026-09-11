@@ -68,6 +68,7 @@ import { mapConfig } from '@/config/map.config';
 import { MAP_EVENTS } from '@/events';
 import { clearMapReady, setMapReady } from '@/utils/map-ready';
 import { HeadingSmoother } from '@/utils/compass';
+import { waitForMapLoad } from '@/utils/map-load';
 
 // Ride recording is unreachable in embed mode, and its subtree (history, GPX,
 // ride stats and storage) is a sizeable chunk to make a partner's page
@@ -942,6 +943,8 @@ const MapboxMap = memo(function MapboxMap() {
       return;
     }
 
+    const initializationController = new AbortController();
+
     // Initialize map
     if (mapContainer.current) {
       const initializeMap = async () => {
@@ -977,14 +980,11 @@ const MapboxMap = memo(function MapboxMap() {
             console.error('Map error:', event.error);
           });
 
-          // Wait for the style to load, but give up if it errors so the
-          // fallback can render instead of waiting forever.
-          await new Promise<void>((resolve, reject) => {
-            newMap.on('load', () => resolve());
-            newMap.once('error', (event: { error?: Error }) =>
-              reject(event.error ?? new Error('Mapbox style failed to load')),
-            );
-          });
+          // Resource errors are recoverable and can fire before the map's load
+          // event, so do not treat the first one as a fatal initialization
+          // failure. A bounded wait still gives configuration/network failures
+          // a visible fallback instead of leaving a blank map indefinitely.
+          await waitForMapLoad(newMap, initializationController.signal);
 
           // Find the road-label layer — route lines will be inserted
           // just below it so street names remain visible on top of routes.
@@ -1127,7 +1127,7 @@ const MapboxMap = memo(function MapboxMap() {
           // Fill in default bounds for any routes that couldn't be calculated at runtime
           initRouteBoundsFromDefaults(bikeRoutes);
 
-          // Ensure all route layers are visible (some may be hidden in Mapbox Studio)
+          // Ensure every repository-backed route layer is visible.
           for (const route of bikeRoutes) {
             if (newMap.getLayer(route.id)) {
               newMap.setLayoutProperty(route.id, 'visibility', 'visible');
@@ -1142,15 +1142,13 @@ const MapboxMap = memo(function MapboxMap() {
           const showTrails = !isEmbedRef.current;
 
           if (showTrails) {
-            // Initialize all mountain bike trail layers. The MTB tileset
-            // isn't included in the Mapbox Studio style, so attach it first.
+            // Initialize all repository-backed mountain bike trail layers.
             ensureMtnBikeSource(newMap);
             initMtnBikeColors(newMap);
             initMtnBikeLayers(newMap);
           }
 
-          // Suppress orphan trail layers baked into the Studio style (e.g. the
-          // leftover TPL trails layer) so they don't render over our routes.
+          // Suppress any orphan layers declared for a future custom base style.
           hideStrayStyleLayers(newMap);
 
           if (showTrails) {
@@ -1313,6 +1311,7 @@ const MapboxMap = memo(function MapboxMap() {
           if (map.current !== newMap) return;
           setMapReady();
         } catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') return;
           console.error('Error initializing map:', error);
           setMapFailed(true);
         }
@@ -1328,6 +1327,7 @@ const MapboxMap = memo(function MapboxMap() {
 
     // Cleanup event listener
     return () => {
+      initializationController.abort();
       if (watchId.current !== null) {
         navigator.geolocation.clearWatch(watchId.current);
       }
@@ -1652,7 +1652,9 @@ const MapboxMap = memo(function MapboxMap() {
     <>
       <div ref={mapContainer} className="w-full h-full absolute inset-0" />
 
-      {(!hasMapboxToken || mapFailed) && <MapUnavailable />}
+      {(!hasMapboxToken || mapFailed) && (
+        <MapUnavailable missingToken={!hasMapboxToken} />
+      )}
 
       <EmbedAttribution />
 
@@ -1736,7 +1738,7 @@ const MapboxMap = memo(function MapboxMap() {
 // Shown in place of the map when no Mapbox token was compiled in. Without it a
 // misconfigured deploy is a silent blank rectangle — which on a partner's page
 // looks like our embed is simply broken, with the only clue in their console.
-function MapUnavailable() {
+function MapUnavailable({ missingToken }: { missingToken: boolean }) {
   return (
     <div className="absolute inset-0 z-[600] flex items-center justify-center bg-gray-100 p-6">
       <div className="max-w-sm text-center">
@@ -1748,8 +1750,9 @@ function MapUnavailable() {
           Map unavailable
         </p>
         <p className="mt-1 text-sm text-gray-600">
-          This site is missing its Mapbox access token, so the map could not be
-          loaded.
+          {missingToken
+            ? 'This site is missing its Mapbox access token, so the map could not be loaded.'
+            : 'The map service did not finish loading. Please try again.'}
         </p>
       </div>
     </div>

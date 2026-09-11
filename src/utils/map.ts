@@ -452,8 +452,8 @@ function sourceIdForLayer(
   return layer?.source ?? cfg.sourceId ?? null;
 }
 
-// Attach any city-managed curated trail vector/GeoJSON sources that are not
-// already baked into the Mapbox Studio style. Idempotent: skips existing ones.
+// Attach city-managed curated trail vector/GeoJSON sources that are not
+// already baked into the base style. Idempotent: skips existing ones.
 export function ensureMtnBikeSource(map: mapboxgl.Map): void {
   try {
     for (const cfg of TRAIL_LAYERS) {
@@ -753,7 +753,7 @@ export function setBikeNetworkVisible(
 const INLINE_ROUTES_SOURCE_ID = 'inline-routes-source';
 
 // Attach curated routes whose geometry ships as a static GeoJSON (one feature
-// per route, keyed by `id`) rather than a Mapbox Studio layer. Each route gets a
+// per route, keyed by `id`) rather than a base-style layer. Each route gets a
 // white casing, the colored line (`id === route.id`), and a wide transparent hit
 // target — the same `${route.id}` / `-casing` / `-hit` layer ids the existing
 // route selection, opacity, and click-handler code keys off, so they work
@@ -1006,7 +1006,7 @@ export function hideStyleLayers(map: mapboxgl.Map, layerIds: string[]): void {
   }
 }
 
-// Hide orphan trail layers baked into the Studio style that the app doesn't
+// Hide orphan trail layers baked into a custom base style that the app doesn't
 // manage. Idempotent and guarded — skips any that aren't present.
 export function hideStrayStyleLayers(map: mapboxgl.Map): void {
   hideStyleLayers(map, STYLE_STRAY_LAYER_IDS);

@@ -3,12 +3,8 @@ import { bikeRoutes } from '@/data/bike-routes';
 import { localResources } from '@/data/local-resources';
 import { mapFeatures } from '@/data/map-features';
 import {
-  GODSEY_LAYER_ID,
-  GODSEY_SOURCE_LAYER,
   MTN_BIKE_LAYER_ID,
   MTN_BIKE_SOURCE_ID,
-  MTN_BIKE_SOURCE_LAYER,
-  MTN_BIKE_TILESET_URL,
   mountainBikeTrails,
   regionFor,
 } from '@/data/mountain-bike-trails';
@@ -36,17 +32,12 @@ export const chattanoogaData: CityData = {
       {
         layerId: MTN_BIKE_LAYER_ID,
         sourceId: MTN_BIKE_SOURCE_ID,
-        tilesetUrl: MTN_BIKE_TILESET_URL,
-        sourceLayer: MTN_BIKE_SOURCE_LAYER,
+        geojsonUrl: '/data/chattanooga/trails.geojson',
         trailProp: 'Trail',
-      },
-      {
-        layerId: GODSEY_LAYER_ID,
-        sourceLayer: GODSEY_SOURCE_LAYER,
-        trailProp: 'Name',
-        metadata: TRAIL_METADATA,
+        matchBy: 'name',
       },
     ],
     hiddenTrails: HIDDEN_TRAILS,
   },
+  bikeRoutesUrl: '/data/chattanooga/routes.geojson',
 };

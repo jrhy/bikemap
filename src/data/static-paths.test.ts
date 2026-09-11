@@ -24,11 +24,17 @@ describe('static dataset URLs', () => {
     expect(embedBuilderConfig().routes.map((route) => route.id)).toEqual(
       data.bikeRoutes.map((route) => route.id),
     );
-    if (cityId === 'bend') {
+    expect(data.bikeRoutesUrl).toBe(`/bikemap/data/${cityId}/routes.geojson`);
+    if (cityId === 'chattanooga') {
+      expect(data.mountainBikeConfig.layers).toEqual([
+        expect.objectContaining({
+          geojsonUrl: '/data/chattanooga/trails.geojson',
+        }),
+      ]);
+    } else {
       expect(data.bikeNetworkUrl).toBe(
         '/bikemap/data/bend/bike-network.geojson',
       );
-      expect(data.bikeRoutesUrl).toBe('/bikemap/data/bend/routes.geojson');
     }
   });
 });

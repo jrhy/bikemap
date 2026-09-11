@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "pnpm typecheck && eslint . --max-warnings 0 && biome lint --error-on-warnings && biome format",
     "lint:fix": "eslint . --fix --max-warnings 0 && biome lint --write --unsafe && biome format --write",
+    "data:chattanooga": "node scripts/build_chattanooga_geojson.mjs",
     "prepare": "husky",
     "preview": "vite preview --host 127.0.0.1 --port 3000"
   },

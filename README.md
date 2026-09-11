@@ -56,6 +56,7 @@ Browser storage belongs to the origin: moving to GitHub Pages does not transfer 
 - `src/data/cities/`: datasets, with static assets under `public/data/`.
 - `src/utils/paths.ts`: deployment-aware page and asset URLs.
 - `scripts/build-static.mjs`: HTML entry files for direct page loads on any static host.
+- `scripts/build_chattanooga_geojson.mjs`: repository-hosted route and trail geometry generated from elevation profiles.
 - `.github/workflows/pages.yml`: tested production build and Pages deployment.
 
 Pages `/`, `/about/`, `/export/`, `/embed/`, and `/embed/demo/` have actual HTML files, so refreshing a nested page does not depend on an SPA rewrite. `/svg/` redirects in the browser to `/export/`. Query-string route/trail links and embed options remain supported.

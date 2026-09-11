@@ -576,8 +576,8 @@ describe('updateMtnBikeOpacity', () => {
       updateMtnBikeOpacity(mockMap, 'Five Points');
     }).not.toThrow();
 
-    // 2 properties per main layer, 2 layers = 4 calls (no casing/glow)
-    expect(mockMap.setPaintProperty).toHaveBeenCalledTimes(4);
+    // Two properties on the repository-backed main layer (no casing/glow).
+    expect(mockMap.setPaintProperty).toHaveBeenCalledTimes(2);
     expect(mockMap.setPaintProperty).toHaveBeenCalledWith(
       MTN_BIKE_LAYER_ID,
       'line-opacity',
@@ -683,26 +683,20 @@ describe('highlightMtnBikeArea', () => {
 });
 
 describe('TRAIL_LAYERS', () => {
-  it('has entries for both mountain-bike and Godsey Ridge layers', () => {
-    expect(TRAIL_LAYERS.length).toBeGreaterThanOrEqual(2);
-    expect(
-      TRAIL_LAYERS.find((l) => l.layerId === MTN_BIKE_LAYER_ID),
-    ).toBeDefined();
-    expect(
-      TRAIL_LAYERS.find((l) => l.layerId === 'Godsey Ridge Trails'),
-    ).toBeDefined();
+  it('uses one repository-backed layer for every Chattanooga trail', () => {
+    expect(TRAIL_LAYERS).toHaveLength(1);
+    expect(TRAIL_LAYERS[0]).toEqual(
+      expect.objectContaining({
+        layerId: MTN_BIKE_LAYER_ID,
+        geojsonUrl: '/data/chattanooga/trails.geojson',
+      }),
+    );
   });
 
   it('mountain-bike layer reads the Trail property and identity-maps names', () => {
     const cfg = TRAIL_LAYERS.find((l) => l.layerId === MTN_BIKE_LAYER_ID);
     expect(cfg?.trailProp).toBe('Trail');
     expect(cfg?.toRawName('Five Points')).toBe('Five Points');
-  });
-
-  it('Godsey layer reads the Name property and resolves display names', () => {
-    const cfg = TRAIL_LAYERS.find((l) => l.layerId === 'Godsey Ridge Trails');
-    expect(cfg?.trailProp).toBe('Name');
-    expect(cfg?.toRawName('Godsey Ridge Green')).toBe('Green as built');
   });
 });
 
@@ -763,24 +757,9 @@ describe('initMtnBikeColors', () => {
 });
 
 describe('hideStrayStyleLayers', () => {
-  it('hides the baked-in TPL trails layer when present', () => {
+  it('does nothing for the shared base style', () => {
     const mockMap = {
       getLayer: vi.fn().mockReturnValue({ id: 'test' }),
-      setLayoutProperty: vi.fn(),
-    } as unknown as mapboxgl.Map;
-
-    hideStrayStyleLayers(mockMap);
-
-    expect(mockMap.setLayoutProperty).toHaveBeenCalledWith(
-      'Chatt_TPL_Trails-public',
-      'visibility',
-      'none',
-    );
-  });
-
-  it('does nothing when the stray layer is absent from the style', () => {
-    const mockMap = {
-      getLayer: vi.fn().mockReturnValue(undefined),
       setLayoutProperty: vi.fn(),
     } as unknown as mapboxgl.Map;
 
@@ -791,14 +770,11 @@ describe('hideStrayStyleLayers', () => {
 });
 
 describe('updateMtnBikeOpacity with Godsey Ridge trail', () => {
-  it('reverse-maps display name to raw feature value for metadata layers', () => {
+  it('selects the trail by its repository GeoJSON name', () => {
     const allLayers = new Set([
       MTN_BIKE_LAYER_ID,
-      'Godsey Ridge Trails',
       `${MTN_BIKE_LAYER_ID} Casing`,
       `${MTN_BIKE_LAYER_ID} Glow`,
-      'Godsey Ridge Trails Casing',
-      'Godsey Ridge Trails Glow',
     ]);
     const mockMap = {
       setPaintProperty: vi.fn(),
@@ -807,11 +783,10 @@ describe('updateMtnBikeOpacity with Godsey Ridge trail', () => {
 
     updateMtnBikeOpacity(mockMap, 'Godsey Ridge Green');
 
-    // The Godsey layer should use the raw name 'Green as built' in the expression
     expect(mockMap.setPaintProperty).toHaveBeenCalledWith(
-      'Godsey Ridge Trails',
+      MTN_BIKE_LAYER_ID,
       'line-opacity',
-      ['case', ['==', ['get', 'Name'], 'Green as built'], 0.9, 0.5],
+      ['case', ['==', ['get', 'Trail'], 'Godsey Ridge Green'], 0.9, 0.5],
     );
   });
 });
@@ -848,21 +823,18 @@ describe('detectTrailAtPoint', () => {
     );
   });
 
-  it('returns display name for Godsey Ridge trails via TRAIL_METADATA', () => {
+  it('returns the static GeoJSON name for Godsey Ridge trails', () => {
     const mockMap = createMockMap({
       queryRenderedFeatures: vi.fn().mockReturnValue([
         {
-          layer: { id: 'Godsey Ridge Trails Hit' },
-          properties: { Name: 'Green as built' },
+          layer: { id: `${MTN_BIKE_LAYER_ID} Hit` },
+          properties: { Trail: 'Godsey Ridge Green' },
         },
       ]),
     });
 
     const result = detectTrailAtPoint(mockMap, [-85.3, 35.0]);
-    // TRAIL_METADATA maps 'Green as built' -> displayName
-    const expected =
-      TRAIL_METADATA['Green as built']?.displayName ?? 'Green as built';
-    expect(result).toBe(expected);
+    expect(result).toBe('Godsey Ridge Green');
   });
 
   it('returns null when no features found', () => {

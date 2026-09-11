@@ -7,7 +7,7 @@ The production build is a directory of static files. A web host serves those fil
 For this repository the project URL is **https://jrhy.github.io/bikemap/**. The source-code URL, https://github.com/jrhy/bikemap, cannot execute the app.
 
 1. In **Settings → Secrets and variables → Actions → Variables**, add `VITE_MAPBOX_TOKEN` with your public `pk.*` token. A repository secret with the same name also works, but this is still a browser-visible token after building.
-2. Allow the site's URL in the token's Mapbox URL restrictions. The configured style and curated Chattanooga tileset must be accessible to that token. See [Mapbox token documentation](https://docs.mapbox.com/accounts/guides/tokens/).
+2. Allow the site's URL in the token's Mapbox URL restrictions. The token needs public style and tile read access. See [Mapbox token documentation](https://docs.mapbox.com/accounts/guides/tokens/).
 3. Optionally set repository variable `VITE_CITY_ID` to `bend`; the default is `chattanooga`. Dataset selection does not change the app's name or identity.
 4. In **Settings → Pages → Build and deployment**, choose **GitHub Actions**.
 5. Push to `main`, or run **Deploy GitHub Pages** manually in Actions. The workflow tests, lints, builds, checks the static files, and deploys `dist/`.
@@ -52,5 +52,7 @@ Rides never go to an application backend. They live in browser IndexedDB, with G
 `VITE_CITY_ID` selects a dataset at build time. To support another geography, extend `src/data/cities/`, `src/config/map.config.ts`, and `public/data/`; see [DATA.md](DATA.md). Hostname routing has been removed.
 
 The app uses the neutral Bike Map name. To regenerate the bicycle icons, run `node scripts/generate-icons.mjs`. Geographic datasets, provider names, and required data/license attribution are retained.
+
+Chattanooga's curated route and trail geometry is served from the repository. Regenerate it from the coordinate-bearing elevation profiles with `pnpm data:chattanooga`.
 
 `NEXT_PUBLIC_*` variables from older deployments are no longer read. Rename `NEXT_PUBLIC_MAPBOX_TOKEN` to `VITE_MAPBOX_TOKEN` and `NEXT_PUBLIC_CITY_ID` to `VITE_CITY_ID`; `NEXT_PUBLIC_CITY_HOST_MAP` is no longer needed.

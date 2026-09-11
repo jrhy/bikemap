@@ -69,7 +69,7 @@ const chattanoogaConfig: MapConfig = {
     // Public (pk.*) Mapbox token — set VITE_MAPBOX_TOKEN in .env.local
     // and in your host's environment for production. See .env.example.
     accessToken: import.meta.env.VITE_MAPBOX_TOKEN ?? '',
-    styleUrl: 'mapbox://styles/swuller/cm91zy289001p01qu4cdsdcgt',
+    styleUrl: 'mapbox://styles/mapbox/outdoors-v12',
   },
 
   defaultView: {
@@ -107,7 +107,7 @@ const bendConfig: MapConfig = {
 
   mapbox: {
     accessToken: import.meta.env.VITE_MAPBOX_TOKEN ?? '',
-    styleUrl: 'mapbox://styles/swuller/cm91zy289001p01qu4cdsdcgt',
+    styleUrl: 'mapbox://styles/mapbox/outdoors-v12',
   },
 
   defaultView: {

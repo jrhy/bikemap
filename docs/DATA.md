@@ -25,14 +25,14 @@ The MTB trail array lives in its own `mountain-bike-trails.data.ts` so the
 
 ## BikeRoute (`bike-routes.ts`)
 
-Routes are line layers styled in Mapbox Studio; the entry here wires a layer to
-its sidebar card.
+Routes are line features in `public/data/<city>/routes.geojson`; the entry here
+wires a feature to its sidebar card and visual style.
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | `string` | **Must equal the Mapbox Studio layer ID** for this route |
+| `id` | `string` | **Must equal the GeoJSON feature's `id` property** |
 | `name` | `string` | Display name |
-| `color` | `string` | Hex; should match the layer's color in Studio |
+| `color` | `string` | Hex line color |
 | `description` | `string` | Sidebar copy |
 | `icon` | `IconDefinition` | Font Awesome icon |
 | `defaultWidth` | `number` | Line width in px |
@@ -83,6 +83,7 @@ pointless, they get overwritten. See [DEPLOYING.md](DEPLOYING.md) for setup.
 |---|---|
 | `add_trail_elevation.py` | `MountainBikeTrail` elevation stats (`elevationGain/Loss/Min/Max`, `distance`) + per-trail `public/data/elevation/chattanooga/{slug}.json` |
 | `add_trail_bounds.py` | `MountainBikeTrail.defaultBounds` and `distance` |
+| `build_chattanooga_geojson.mjs` | Chattanooga route/trail GeoJSON from coordinate-bearing elevation profiles |
 | `validate_trails.py` | Read-only — flags geometry/elevation anomalies |
 | `mtb_project_trail_validation.py` | Read-only — compares local curated MTB trails with minimal MTB Project route metadata; see [MTB_PROJECT_VALIDATION.md](MTB_PROJECT_VALIDATION.md) |
 

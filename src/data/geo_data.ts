@@ -8,11 +8,7 @@ export const bikeRoutes = activeCityData.bikeRoutes;
 
 export {
   MTN_BIKE_LAYER_ID,
-  MTN_BIKE_SOURCE_LAYER,
-  MTN_BIKE_TILESET_URL,
   MTN_BIKE_SOURCE_ID,
-  GODSEY_LAYER_ID,
-  GODSEY_SOURCE_LAYER,
 } from './mountain-bike-trails';
 export type {
   MountainBikeTrail,
@@ -21,8 +17,8 @@ export type {
 export const mountainBikeTrails = activeCityData.mountainBikeTrails;
 export const mountainBikeConfig = activeCityData.mountainBike;
 export const trailMetadata = activeCityData.trailMetadata;
-// Style-owned layers the active city doesn't manage (see mapbox-style.ts).
-export const hiddenStyleLayerIds = hiddenStyleLayerIdsFor(activeCityData);
+// Layers from a future custom base style that the active city doesn't manage.
+export const hiddenStyleLayerIds = hiddenStyleLayerIdsFor();
 export const regionFor = activeCityData.regionFor;
 export const bikeNetworkUrl =
   activeCityData.bikeNetworkUrl && appPath(activeCityData.bikeNetworkUrl);

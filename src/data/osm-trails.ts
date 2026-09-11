@@ -1,8 +1,8 @@
 // Nationwide OSM bike trails, served as vector tiles by OpenStreetMap US.
 // https://openstreetmap.us/our-work/tileservice/
 //
-// Like the MTB tileset, this source is NOT part of the Mapbox Studio style —
-// we attach it ourselves at runtime (see ensureOsmTrailsSource in utils/map.ts)
+// This source is not part of the Mapbox Outdoors base style. We attach it at
+// runtime (see ensureOsmTrailsSource in utils/map.ts)
 // from the public TileJSON. The `trail` source-layer carries OSM access and
 // difficulty tags (bicycle, mtb:scale, highway, surface, name, …) that we
 // filter and color on. The layer is hidden by default and toggled from the

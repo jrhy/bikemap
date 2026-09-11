@@ -30,6 +30,8 @@ assert.equal(manifest.scope, './');
 for (const icon of manifest.icons) await stat(`dist/${icon.src}`);
 await stat('dist/sw.js');
 await stat('dist/data/elevation/chattanooga/big-forest.json');
+await stat('dist/data/chattanooga/routes.geojson');
+await stat('dist/data/chattanooga/trails.geojson');
 await stat('dist/data/bend/routes.geojson');
 console.log(
   `Static pages, scripts, styles, icons and data verified under ${base}`,
