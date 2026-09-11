@@ -171,6 +171,7 @@ export function RidesPanel() {
       }
     } else {
       startRecording();
+      showToast('Recording — keep this tab open. The screen will stay on.');
     }
   }, [isRecording, stopRecording, startRecording, showToast]);
 
@@ -259,27 +260,53 @@ export function RidesPanel() {
           isOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none',
         )}
       >
-        <div
-          className={cn(
-            'px-4 pb-2 border-b border-gray-200 pt-[calc(1rem+env(safe-area-inset-top))]',
-            isRecording && 'px-6 pb-4 landscape:py-3',
-          )}
-        >
-          <h2
-            className={cn(
-              'm-0 text-base font-semibold text-gray-700',
-              isRecording &&
-                'flex items-center gap-2 text-xl text-gray-800 landscape:text-lg',
+        {isRecording ? (
+          <>
+            <h2 className="sr-only">
+              {isPaused ? 'Ride paused' : 'Recording ride'}
+            </h2>
+            <p aria-live="polite" className="sr-only">
+              {isPaused ? 'Ride paused' : 'Recording ride'}
+            </p>
+          </>
+        ) : (
+          <div className="border-b border-gray-200 px-4 pb-2 pt-[calc(1rem+env(safe-area-inset-top))]">
+            <h2 className="m-0 text-base font-semibold text-gray-700">
+              My Rides
+            </h2>
+          </div>
+        )}
+
+        {/* Recording overlay: status + controls replace the header/footer */}
+        {isRecording && (
+          <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-2 px-4 pt-[calc(.75rem+env(safe-area-inset-top))]">
+            {isPaused ? (
+              <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-red-700">
+                Paused
+              </span>
+            ) : (
+              <PulseDot />
             )}
-          >
-            {isRecording && <PulseDot />}
-            {isRecording
-              ? isPaused
-                ? 'Ride paused'
-                : 'Recording ride'
-              : 'My Rides'}
-          </h2>
-        </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                aria-label={isPaused ? 'Resume' : 'Pause'}
+                onClick={isPaused ? resumeRecording : pauseRecording}
+                className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border-none bg-gray-100 text-gray-700 shadow-sm transition-colors hover:bg-gray-200"
+              >
+                <FontAwesomeIcon icon={isPaused ? faPlay : faPause} />
+              </button>
+              <button
+                type="button"
+                aria-label="Finish ride"
+                onClick={handleRecordClick}
+                className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border-none bg-red-500 text-white shadow-sm transition-colors hover:bg-red-600"
+              >
+                <FontAwesomeIcon icon={faFlagCheckered} />
+              </button>
+            </div>
+          </div>
+        )}
 
         <div
           className={cn(
@@ -290,7 +317,10 @@ export function RidesPanel() {
           {toastMessage && (
             <div
               className={cn(
-                'absolute top-2 left-4 right-4 px-3 py-2 bg-gray-700 text-white rounded-md text-[13px] text-center animate-toast-slide-in z-10 pointer-events-none',
+                'absolute left-4 right-4 px-3 py-2 bg-gray-700 text-white rounded-md text-[13px] text-center animate-toast-slide-in z-10 pointer-events-none',
+                isRecording
+                  ? 'top-[calc(4.25rem+env(safe-area-inset-top))]'
+                  : 'top-2',
                 toastFadingOut &&
                   'opacity-0 transition-opacity duration-300 ease-in',
               )}
@@ -345,37 +375,9 @@ export function RidesPanel() {
           )}
         </div>
 
-        {/* Recording controls */}
-        <div
-          className={cn(
-            'px-4 py-3 border-t border-gray-200',
-            isRecording &&
-              'px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4 landscape:py-3 landscape:pb-[calc(.75rem+env(safe-area-inset-bottom))]',
-          )}
-        >
-          {isRecording ? (
-            <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 landscape:max-w-4xl landscape:flex-row landscape:items-center">
-              <div className="flex flex-1 gap-3">
-                <button
-                  type="button"
-                  className="min-h-14 flex-1 rounded-xl border-none bg-gray-100 p-3 text-base font-semibold text-gray-700 transition-colors hover:bg-gray-200"
-                  onClick={isPaused ? resumeRecording : pauseRecording}
-                >
-                  {isPaused ? 'Resume' : 'Pause'}
-                </button>
-                <button
-                  type="button"
-                  className="min-h-14 flex-1 rounded-xl border-none bg-red-500 p-3 text-base font-semibold text-white transition-colors hover:bg-red-600"
-                  onClick={handleRecordClick}
-                >
-                  Finish
-                </button>
-              </div>
-              <p className="text-center text-xs leading-tight text-gray-400 landscape:max-w-48">
-                Keep your phone on to track GPS. The screen will stay on.
-              </p>
-            </div>
-          ) : (
+        {/* Record entry point (recording controls live in the top overlay) */}
+        {!isRecording && (
+          <div className="border-t border-gray-200 px-4 py-3">
             <button
               type="button"
               className="w-full flex items-center gap-2 py-5 px-3.5 border border-gray-200 rounded-lg bg-white cursor-pointer text-[15px] font-medium text-gray-700 transition-colors hover:bg-gray-50"
@@ -384,8 +386,8 @@ export function RidesPanel() {
               <div className="w-3 h-3 rounded-full bg-red-500 shrink-0" />
               <span>Record a Ride</span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </>
   );
@@ -393,37 +395,11 @@ export function RidesPanel() {
 
 function PrimaryStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
-      <span className="text-[clamp(3.5rem,14vw,6.5rem)] font-bold leading-none tabular-nums tracking-tight text-gray-900 landscape:text-[clamp(4rem,6vw,7rem)]">
+    <div className="flex min-h-0 flex-1 basis-0 flex-col items-center justify-center">
+      <span className="text-[min(20vw,15dvh)] font-bold leading-none tabular-nums tracking-tight text-gray-900 landscape:text-[min(11vw,20dvh)]">
         {value}
       </span>
       <span className="mt-2 text-sm font-medium uppercase tracking-wide text-gray-500">
-        {label}
-      </span>
-    </div>
-  );
-}
-
-function SecondaryStat({
-  value,
-  label,
-  caption,
-}: {
-  value: string;
-  label: string;
-  caption?: string;
-}) {
-  return (
-    <div className="flex min-w-0 flex-col items-center justify-center">
-      <span className="text-[clamp(1.75rem,7vw,3.5rem)] font-bold leading-none tabular-nums tracking-tight text-gray-800 landscape:text-3xl">
-        {value}
-      </span>
-      {caption ? (
-        <span className="mt-1 text-xs tabular-nums text-gray-400">
-          {caption}
-        </span>
-      ) : null}
-      <span className="mt-1 text-xs font-medium uppercase tracking-wide text-gray-500">
         {label}
       </span>
     </div>
@@ -464,24 +440,26 @@ function RecordingDashboard({
   // so average speed is a pure derivation — no hook state needed.
   const avgSpeed = elapsedTime > 0 ? distance / elapsedTime : null;
   return (
-    <div className="mx-auto flex h-full w-full max-w-3xl flex-col px-6 py-4 landscape:max-w-5xl landscape:flex-row landscape:items-stretch landscape:gap-8 landscape:px-8">
+    <div className="mx-auto flex h-full w-full max-w-3xl flex-col px-6 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(4.5rem+env(safe-area-inset-top))] landscape:max-w-5xl landscape:flex-row landscape:items-stretch landscape:gap-8 landscape:px-8">
       <PrimaryStat value={formatDistance(distance)} label="Distance" />
-      <div className="grid grid-cols-2 gap-4 border-t border-gray-200 pt-4 landscape:flex landscape:flex-1 landscape:flex-row landscape:items-center landscape:border-t-0 landscape:border-l landscape:pt-0 landscape:pl-8">
-        <SecondaryStat
-          value={formatElapsed(elapsedTime)}
-          label="Time"
-          caption={
-            pausedSeconds > 0
-              ? `paused ${formatElapsed(pausedSeconds)}`
-              : undefined
-          }
-        />
-        <SecondaryStat
-          value={speed == null ? '— km/h' : formatSpeed(speed)}
-          label="Speed"
-        />
+      <PrimaryStat
+        value={speed == null ? '— km/h' : formatSpeed(speed)}
+        label="Speed"
+      />
+      <div className="flex flex-col items-center justify-center border-t border-gray-200 py-3 landscape:w-48 landscape:flex-none landscape:border-t-0 landscape:border-l landscape:py-0 landscape:pl-8">
+        <span className="text-[clamp(1.75rem,7vw,3.5rem)] font-bold leading-none tabular-nums tracking-tight text-gray-800 landscape:text-3xl">
+          {formatElapsed(elapsedTime)}
+        </span>
+        {pausedSeconds > 0 && (
+          <span className="mt-1 text-xs tabular-nums text-gray-400">
+            paused {formatElapsed(pausedSeconds)}
+          </span>
+        )}
+        <span className="mt-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+          Time
+        </span>
       </div>
-      <div className="mt-auto grid grid-cols-3 gap-2 border-t border-gray-200 pt-3 landscape:mt-0 landscape:flex landscape:w-64 landscape:flex-none landscape:flex-col landscape:justify-center landscape:gap-3 landscape:border-t-0 landscape:border-l landscape:pt-0 landscape:pl-8">
+      <div className="grid grid-cols-3 gap-2 border-t border-gray-200 py-3 landscape:mt-0 landscape:flex landscape:w-64 landscape:flex-none landscape:flex-col landscape:justify-center landscape:gap-3 landscape:border-t-0 landscape:border-l landscape:py-0 landscape:pl-8">
         <TertiaryStat
           value={grade == null ? '—' : formatGrade(grade)}
           label="Grade"

@@ -6,6 +6,7 @@ import type { useRideRecording } from '@/hooks';
 import { MAP_EVENTS } from '@/events';
 
 // Mock useRideRecording hook — rebuilt each test via beforeEach
+const showToast = vi.fn();
 function createMockHook(): ReturnType<typeof useRideRecording> {
   return {
     isRecording: false,
@@ -35,7 +36,7 @@ vi.mock('@/hooks', () => ({
   useToast: () => ({
     message: null,
     isFadingOut: false,
-    showToast: vi.fn(),
+    showToast,
   }),
 }));
 
@@ -92,8 +93,27 @@ describe('RidesPanel', () => {
     mockHook.isRecording = true;
     render(<RidesPanel />);
     openPanel();
-    expect(screen.getByText('Finish')).toBeInTheDocument();
-    expect(screen.getByText('Pause')).toBeInTheDocument();
+    expect(screen.getByLabelText('Finish ride')).toBeInTheDocument();
+    expect(screen.getByLabelText('Pause')).toBeInTheDocument();
+  });
+
+  it('shows a Paused chip instead of the title when paused', () => {
+    mockHook.isRecording = true;
+    mockHook.isPaused = true;
+    render(<RidesPanel />);
+    openPanel();
+
+    expect(screen.getByText('Paused')).toBeInTheDocument();
+  });
+
+  it('shows a one-time toast when recording starts', () => {
+    showToast.mockClear();
+    render(<RidesPanel />);
+    fireEvent.click(screen.getByText('Record a Ride'));
+
+    expect(showToast).toHaveBeenCalledWith(
+      expect.stringContaining('keep this tab open'),
+    );
   });
 
   it('replaces ride history with a full recording dashboard', () => {
@@ -105,7 +125,9 @@ describe('RidesPanel', () => {
     openPanel();
 
     expect(screen.queryByTestId('ride-history')).not.toBeInTheDocument();
-    expect(screen.getByText('Recording ride')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Recording ride' }),
+    ).toBeInTheDocument();
     expect(screen.getByText('1:02:03')).toBeInTheDocument();
     expect(screen.getByText('12.4 km')).toBeInTheDocument();
     expect(screen.getByText('318 m')).toBeInTheDocument();
@@ -149,14 +171,16 @@ describe('RidesPanel', () => {
     render(<RidesPanel />);
     openPanel();
 
-    expect(screen.getByText('Ride paused')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Ride paused' }),
+    ).toBeInTheDocument(); // sr-only h2
   });
 
   it('calls pauseRecording when Pause clicked', () => {
     mockHook.isRecording = true;
     render(<RidesPanel />);
     openPanel();
-    fireEvent.click(screen.getByText('Pause'));
+    fireEvent.click(screen.getByLabelText('Pause'));
     expect(mockHook.pauseRecording).toHaveBeenCalled();
   });
 
@@ -165,7 +189,7 @@ describe('RidesPanel', () => {
     mockHook.isPaused = true;
     render(<RidesPanel />);
     openPanel();
-    expect(screen.getByText('Resume')).toBeInTheDocument();
+    expect(screen.getByLabelText('Resume')).toBeInTheDocument();
   });
 
   it('calls stopRecording when Finish clicked', async () => {
@@ -174,7 +198,7 @@ describe('RidesPanel', () => {
     openPanel();
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Finish'));
+      fireEvent.click(screen.getByLabelText('Finish ride'));
     });
 
     expect(mockHook.stopRecording).toHaveBeenCalled();
