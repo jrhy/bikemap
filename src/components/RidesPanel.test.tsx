@@ -2,10 +2,11 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { RidesPanel } from './RidesPanel';
+import type { useRideRecording } from '@/hooks';
 import { MAP_EVENTS } from '@/events';
 
 // Mock useRideRecording hook — rebuilt each test via beforeEach
-function createMockHook() {
+function createMockHook(): ReturnType<typeof useRideRecording> {
   return {
     isRecording: false,
     isPaused: false,
@@ -22,6 +23,7 @@ function createMockHook() {
     resumeRecording: vi.fn(),
     stopRecording: vi.fn().mockResolvedValue(null),
     recoverRide: vi.fn().mockResolvedValue(null),
+    continueRide: vi.fn().mockResolvedValue(undefined),
     dismissRecovery: vi.fn(),
   };
 }
