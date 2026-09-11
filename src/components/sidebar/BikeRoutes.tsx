@@ -1,3 +1,4 @@
+import { formatDistance, METERS_PER_MILE } from '@/utils/format';
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { bikeRoutes } from '@/data/geo_data';
@@ -30,7 +31,7 @@ export function BikeRoutes({ selectedRoute, onRouteSelect }: BikeRoutesProps) {
             />
             <span className="font-medium">{route.name}</span>
             <span className="text-[11px] text-gray-500 ml-auto shrink-0">
-              {route.distance} mi
+              {formatDistance(route.distance * METERS_PER_MILE)}
             </span>
           </div>
           <div className="text-xs text-gray-500 mt-1 ml-7">

@@ -13,7 +13,12 @@ import {
 import { TOGGLE_BTN_CLASS, TOGGLE_ICON_CLASS } from './styles';
 import { cn } from '@/lib/utils';
 import { useRideRecording, useToast } from '@/hooks';
-import { formatElapsed, formatDistance, formatElevation } from '@/utils/format';
+import {
+  formatElapsed,
+  formatDistance,
+  formatElevation,
+  formatSpeed,
+} from '@/utils/format';
 import { RideHistory } from './sidebar/RideHistory';
 
 const PulseDot = memo(function PulseDot() {
@@ -40,6 +45,8 @@ export function RidesPanel() {
     elapsedTime,
     liveDistance,
     liveElevationGain,
+    liveSpeed,
+    liveElevation,
     startRecording,
     pauseRecording,
     resumeRecording,
@@ -196,7 +203,7 @@ export function RidesPanel() {
 
       {/* Floating recording HUD — visible when recording with panel closed */}
       {isRecording && !isOpen && (
-        <div className="fixed top-[calc(22px+env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-[800] bg-white rounded-xl shadow-lg h-10 px-3 flex items-center gap-2.5 text-sm max-md:top-[calc(76px+env(safe-area-inset-top))] max-md:left-2 max-md:right-2 max-md:translate-x-0">
+        <div className="fixed top-[calc(22px+env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-[800] bg-white rounded-xl shadow-lg py-2 px-3 flex flex-wrap items-center gap-2.5 text-sm max-md:top-[calc(76px+env(safe-area-inset-top))] max-md:left-2 max-md:right-2 max-md:translate-x-0">
           <PulseDot />
           <span className="font-bold tabular-nums text-gray-700">
             {formatElapsed(elapsedTime)}
@@ -205,7 +212,21 @@ export function RidesPanel() {
             {formatDistance(liveDistance)}
           </span>
           <span className="tabular-nums text-gray-500">
-            {formatElevation(liveElevationGain)}
+            ↑{formatElevation(liveElevationGain)}
+          </span>
+          <span
+            role="group"
+            className="tabular-nums text-gray-500"
+            aria-label="Speed"
+          >
+            {liveSpeed == null ? '— km/h' : formatSpeed(liveSpeed)}
+          </span>
+          <span
+            role="group"
+            className="tabular-nums text-gray-500"
+            aria-label="Elevation"
+          >
+            {liveElevation == null ? '— m' : formatElevation(liveElevation)}
           </span>
           <div className="flex gap-1.5 ml-auto">
             <button
@@ -296,7 +317,7 @@ export function RidesPanel() {
         <div className="px-4 py-3 border-t border-gray-200">
           {isRecording ? (
             <div className="flex flex-col gap-2.5">
-              <div className="flex justify-between text-center">
+              <div className="grid grid-cols-3 gap-2 text-center">
                 <RecordingStat
                   value={formatElapsed(elapsedTime)}
                   label="Time"
@@ -308,6 +329,18 @@ export function RidesPanel() {
                 <RecordingStat
                   value={formatElevation(liveElevationGain)}
                   label="Climbing"
+                />
+                <RecordingStat
+                  value={liveSpeed == null ? '— km/h' : formatSpeed(liveSpeed)}
+                  label="Speed"
+                />
+                <RecordingStat
+                  value={
+                    liveElevation == null
+                      ? '— m'
+                      : formatElevation(liveElevation)
+                  }
+                  label="Elevation"
                 />
               </div>
               <div className="flex gap-2">

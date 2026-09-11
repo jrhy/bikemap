@@ -227,7 +227,7 @@ describe('ElevationProfile selection source', () => {
         }),
       );
     });
-    expect(screen.getByText('+999 ft climbing')).toBeInTheDocument();
+    expect(screen.getByText('+304 m climbing')).toBeInTheDocument();
 
     act(() => {
       window.dispatchEvent(
@@ -242,7 +242,7 @@ describe('ElevationProfile selection source', () => {
         '/data/elevation/chattanooga/big-forest.json',
         expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
-      expect(screen.getByText('+123 ft climbing')).toBeInTheDocument();
+      expect(screen.getByText('+37 m climbing')).toBeInTheDocument();
     });
   });
 });

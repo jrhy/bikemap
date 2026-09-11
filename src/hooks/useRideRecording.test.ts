@@ -99,6 +99,34 @@ describe('useRideRecording', () => {
     vi.restoreAllMocks();
   });
 
+  it('exposes live speed and smoothed altitude without changing recorded points', async () => {
+    const { result } = renderHook(() => useRideRecording());
+    act(() => result.current.startRecording());
+    expect(result.current.liveSpeed).toBeNull();
+    expect(result.current.liveElevation).toBeNull();
+    act(() => simulatePosition(-85.3, 35, { speed: 5, altitude: 200 }));
+    act(() => simulatePosition(-85.3, 35, { speed: 6, altitude: 210 }));
+    expect(result.current.liveSpeed).toBe(6);
+    expect(result.current.liveElevation).toBe(201);
+    act(() => simulatePosition(-85.3, 35, { altitude: 1000 }));
+    expect(result.current.liveElevation).toBeCloseTo(201.9);
+    act(() => vi.advanceTimersByTime(16_000));
+    expect(result.current.liveSpeed).toBeNull();
+    act(() => result.current.pauseRecording());
+    expect(result.current.liveSpeed).toBe(0);
+    act(() => simulatePosition(-85.3, 35, { speed: 10 }));
+    expect(result.current.liveSpeed).toBe(0);
+    act(() => result.current.resumeRecording());
+    expect(result.current.liveSpeed).toBeNull();
+    expect(result.current.liveElevation).toBeNull();
+    const ride = await act(() => result.current.stopRecording());
+    expect(ride?.points.map((point) => point.altitude)).toEqual([
+      200, 210, 1000,
+    ]);
+    expect(ride?.points[0]).not.toHaveProperty('speed');
+    expect(result.current.liveElevation).toBeNull();
+  });
+
   it('starts with default state', () => {
     const { result } = renderHook(() => useRideRecording());
 

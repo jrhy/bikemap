@@ -13,6 +13,8 @@ function createMockHook() {
     elapsedTime: 0,
     liveDistance: 0,
     liveElevationGain: 0,
+    liveSpeed: 5,
+    liveElevation: 201.9,
     startRecording: vi.fn(),
     pauseRecording: vi.fn(),
     resumeRecording: vi.fn(),
@@ -49,6 +51,13 @@ function openPanel() {
 describe('RidesPanel', () => {
   beforeEach(() => {
     mockHook = createMockHook();
+  });
+
+  it('shows metric live readings in the floating HUD', () => {
+    mockHook.isRecording = true;
+    render(<RidesPanel />);
+    expect(screen.getByLabelText('Speed')).toHaveTextContent('18.0 km/h');
+    expect(screen.getByLabelText('Elevation')).toHaveTextContent('202 m');
   });
 
   it('renders toggle button', () => {

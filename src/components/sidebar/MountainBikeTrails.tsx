@@ -1,3 +1,9 @@
+import {
+  formatDistance,
+  formatElevation,
+  METERS_PER_MILE,
+  FEET_PER_METER,
+} from '@/utils/format';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -92,9 +98,13 @@ function TrailRow({
         <span className="font-medium text-[13px]">{trail.displayName}</span>
         {trail.distance || trail.elevationGain ? (
           <span className="text-[11px] text-gray-500 ml-auto shrink-0">
-            {trail.distance ? `${trail.distance} mi` : ''}
+            {trail.distance
+              ? formatDistance(trail.distance * METERS_PER_MILE)
+              : ''}
             {trail.distance && trail.elevationGain ? ' \u00B7 ' : ''}
-            {trail.elevationGain ? `\u2191${trail.elevationGain} ft` : ''}
+            {trail.elevationGain
+              ? `\u2191${formatElevation(trail.elevationGain / FEET_PER_METER)}`
+              : ''}
           </span>
         ) : null}
       </div>

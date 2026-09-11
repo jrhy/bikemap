@@ -48,6 +48,8 @@ interface UseRideRecordingReturn {
   elapsedTime: number; // seconds
   liveDistance: number; // meters
   liveElevationGain: number; // meters
+  liveSpeed: number | null; // m/s; null when unavailable
+  liveElevation: number | null; // meters, existing EMA-smoothed GPS altitude
   startRecording: () => void;
   pauseRecording: () => void;
   resumeRecording: () => void;
@@ -67,6 +69,9 @@ export function useRideRecording(
   const [elapsedTime, setElapsedTime] = useState(0);
   const [liveDistance, setLiveDistance] = useState(0);
   const [liveElevationGain, setLiveElevationGain] = useState(0);
+  const [liveSpeed, setLiveSpeed] = useState<number | null>(null);
+  const [liveElevation, setLiveElevation] = useState<number | null>(null);
+  const lastFixTimeRef = useRef<number | null>(null);
   const distanceRef = useRef(0);
   const elevGainRef = useRef(0);
   const emaAltRef = useRef<number | null>(null); // EMA-smoothed altitude
@@ -156,6 +161,9 @@ export function useRideRecording(
     setElapsedTime(0);
     setLiveDistance(0);
     setLiveElevationGain(0);
+    setLiveSpeed(null);
+    setLiveElevation(null);
+    lastFixTimeRef.current = null;
     segmentBreakRef.current = false;
   }, []);
 
@@ -169,6 +177,17 @@ export function useRideRecording(
 
         // Manual pause — skip everything
         if (manualPauseRef.current) return;
+
+        lastFixTimeRef.current = Date.now();
+        const gpsSpeed = position.coords.speed;
+        setLiveSpeed(
+          gpsSpeed !== null &&
+            Number.isFinite(gpsSpeed) &&
+            gpsSpeed >= 0 &&
+            position.coords.accuracy <= MAX_ACCURACY_M
+            ? gpsSpeed
+            : null,
+        );
 
         // Auto-pause logic (silent — doesn't update UI isPaused state)
         if (pausedRef.current) {
@@ -247,6 +266,7 @@ export function useRideRecording(
         const altValue = point.altitude;
 
         if (startsNewSegment) {
+          setLiveElevation(null);
           emaAltRef.current = null;
           altAnchorRef.current = null;
           distSinceAnchorRef.current = 0;
@@ -304,8 +324,10 @@ export function useRideRecording(
             }
           }
         }
+        setLiveElevation(emaAltRef.current);
       },
       (error) => {
+        setLiveSpeed(null);
         const messages: Record<number, string> = {
           1: 'Location permission denied — cannot record ride',
           2: 'GPS unavailable — check your device settings',
@@ -327,6 +349,13 @@ export function useRideRecording(
 
     // Start elapsed time counter
     timerRef.current = setInterval(() => {
+      if (
+        !manualPauseRef.current &&
+        lastFixTimeRef.current !== null &&
+        Date.now() - lastFixTimeRef.current > BACKGROUND_GAP_THRESHOLD_MS
+      ) {
+        setLiveSpeed(null);
+      }
       const paused = pausedRef.current
         ? pausedTimeRef.current + (Date.now() - pauseStartRef.current)
         : pausedTimeRef.current;
@@ -371,6 +400,9 @@ export function useRideRecording(
     setElapsedTime(0);
     setLiveDistance(0);
     setLiveElevationGain(0);
+    setLiveSpeed(null);
+    setLiveElevation(null);
+    lastFixTimeRef.current = null;
     setIsRecording(true);
     setIsPaused(false);
 
@@ -384,6 +416,7 @@ export function useRideRecording(
       pausedRef.current = true;
       pauseStartRef.current = Date.now();
     }
+    setLiveSpeed(0);
     setIsPaused(true);
   }, [isRecording]);
 
@@ -396,6 +429,8 @@ export function useRideRecording(
     // The user may have moved while paused (points were dropped) — don't let
     // the first post-resume segment bridge the gap into distance/elevation.
     segmentBreakRef.current = true;
+    setLiveSpeed(null);
+    setLiveElevation(null);
     setIsPaused(false);
   }, [isRecording]);
 
@@ -588,6 +623,9 @@ export function useRideRecording(
     altAnchorRef.current = lastAlt;
     distSinceAnchorRef.current = 0;
 
+    setLiveSpeed(null);
+    setLiveElevation(null);
+    lastFixTimeRef.current = null;
     setLiveDistance(dist);
     setLiveElevationGain(elev.gain);
     setHasRecovery(false);
@@ -635,6 +673,8 @@ export function useRideRecording(
     elapsedTime,
     liveDistance,
     liveElevationGain,
+    liveSpeed,
+    liveElevation,
     startRecording,
     pauseRecording,
     resumeRecording,

@@ -14,7 +14,12 @@ import {
 } from '@/data/geo_data';
 import { slugForTrail } from '@/data/mountain-bike-trails';
 import { slugify } from '@/utils/string';
-import { downloadFile } from '@/utils/format';
+import {
+  downloadFile,
+  formatDistance,
+  formatElevation,
+  FEET_PER_METER,
+} from '@/utils/format';
 import { buildProfileGpx } from '@/utils/gpx';
 import { MAP_EVENTS } from '@/events';
 import { loadRide } from '@/utils/ride-storage';
@@ -592,8 +597,10 @@ export function ElevationProfile() {
           </span>
         )}
         <div className="flex gap-3 text-[11px] text-gray-500 ml-auto shrink-0">
-          <span>{(headlineDistFt / 5280).toFixed(1)} mi</span>
-          <span>+{Math.round(profile.gain).toLocaleString()} ft climbing</span>
+          <span>{formatDistance(headlineDistFt / FEET_PER_METER)}</span>
+          <span>
+            +{formatElevation(profile.gain / FEET_PER_METER)} climbing
+          </span>
         </div>
         <div className="flex gap-1 ml-2 shrink-0">
           <button
@@ -658,10 +665,10 @@ export function ElevationProfile() {
       <div className="flex relative">
         <div className="flex flex-col justify-between py-0.5 shrink-0 w-[42px]">
           <span className="text-[9px] text-gray-400 text-right pr-1 leading-none">
-            {Math.round(profile.max).toLocaleString()} ft
+            {formatElevation(profile.max / FEET_PER_METER)}
           </span>
           <span className="text-[9px] text-gray-400 text-right pr-1 leading-none">
-            {Math.round(profile.min).toLocaleString()} ft
+            {formatElevation(profile.min / FEET_PER_METER)}
           </span>
         </div>
 
@@ -700,7 +707,7 @@ export function ElevationProfile() {
 
       <div className="text-[11px] text-gray-600 text-center py-0.5 min-h-4">
         {hoverIndex !== null
-          ? `${(points[hoverIndex][0] / 5280).toFixed(2)} mi \u00B7 ${Math.round(points[hoverIndex][1]).toLocaleString()} ft`
+          ? `${(points[hoverIndex][0] / FEET_PER_METER / 1000).toFixed(2)} km \u00B7 ${formatElevation(points[hoverIndex][1] / FEET_PER_METER)}`
           : '\u00A0'}
       </div>
     </div>

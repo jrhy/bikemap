@@ -2,7 +2,7 @@
 
 export const METERS_PER_MILE = 1609.344;
 export const FEET_PER_METER = 3.28084;
-const MPH_PER_MPS = 2.23694;
+const KMH_PER_MPS = 3.6;
 
 export function formatElapsed(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -26,15 +26,15 @@ export function formatDurationShort(ms: number): string {
 }
 
 export function formatDistance(meters: number): string {
-  return `${(meters / METERS_PER_MILE).toFixed(1)} mi`;
+  return `${(meters / 1000).toFixed(1)} km`;
 }
 
 export function formatSpeed(mps: number): string {
-  return `${(mps * MPH_PER_MPS).toFixed(1)} mph`;
+  return `${(mps * KMH_PER_MPS).toFixed(1)} km/h`;
 }
 
 export function formatElevation(meters: number): string {
-  return `${Math.round(meters * FEET_PER_METER)} ft`;
+  return `${Math.round(meters)} m`;
 }
 
 export function formatDate(timestamp: number): string {
