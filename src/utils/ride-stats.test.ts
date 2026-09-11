@@ -10,6 +10,8 @@ import {
   computeRideStats,
   rideToElevationProfile,
   pointsToElevationProfile,
+  GradeWindow,
+  GRADE_WINDOW_M,
 } from './ride-stats';
 
 function makePoint(overrides?: Partial<RidePoint>): RidePoint {
@@ -587,5 +589,45 @@ describe('rideToElevationProfile', () => {
       expect(e).toBeGreaterThan(300);
       expect(e).toBeLessThan(400);
     }
+  });
+});
+
+describe('GradeWindow', () => {
+  it('returns null until a full window of distance has been ridden', () => {
+    const gw = new GradeWindow();
+    gw.push(0, 200);
+    gw.push(60, 202); // 60 m < GRADE_WINDOW_M
+    expect(gw.percent).toBeNull();
+  });
+
+  it('computes slope percent over the trailing window', () => {
+    const gw = new GradeWindow();
+    gw.push(0, 200);
+    gw.push(GRADE_WINDOW_M, 208); // 8 m rise over 80 m
+    expect(gw.percent).toBeCloseTo(10, 5);
+  });
+
+  it('returns negative slope for descents', () => {
+    const gw = new GradeWindow();
+    gw.push(0, 300);
+    gw.push(GRADE_WINDOW_M, 292);
+    expect(gw.percent).toBeCloseTo(-10, 5);
+  });
+
+  it('retains only window-spanning samples so old terrain cannot skew the grade', () => {
+    const gw = new GradeWindow();
+    gw.push(0, 0);
+    gw.push(GRADE_WINDOW_M, 0); // flat first window
+    expect(gw.percent).toBeCloseTo(0, 5);
+    gw.push(2 * GRADE_WINDOW_M, GRADE_WINDOW_M / 4); // steady 25% climb after
+    expect(gw.percent).toBeCloseTo(25, 5); // not (80-0)/160 influenced by the flat start
+  });
+
+  it('reset clears the window', () => {
+    const gw = new GradeWindow();
+    gw.push(0, 200);
+    gw.push(GRADE_WINDOW_M, 210);
+    gw.reset();
+    expect(gw.percent).toBeNull();
   });
 });

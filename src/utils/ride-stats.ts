@@ -443,3 +443,44 @@ export function pointsToElevationProfile(
     profile,
   };
 }
+
+// Live grade display: slope over a trailing distance window using the
+// recorder's EMA-smoothed altitude. Shorter windows jitter with GPS noise;
+// longer ones lag too far behind the road.
+export const GRADE_WINDOW_M = 80;
+
+interface GradeSample {
+  dist: number; // cumulative ride distance (m)
+  alt: number; // EMA-smoothed altitude (m)
+}
+
+export class GradeWindow {
+  private samples: GradeSample[] = [];
+
+  reset(): void {
+    this.samples = [];
+  }
+
+  /** Add a fix at cumulative distance `dist` with smoothed altitude `alt`. */
+  push(dist: number, alt: number): void {
+    this.samples.push({ dist, alt });
+    // Retain the oldest sample that still spans the window; drop anything
+    // older so the grade always reflects the most recent GRADE_WINDOW_M+.
+    while (
+      this.samples.length >= 2 &&
+      dist - this.samples[1].dist >= GRADE_WINDOW_M
+    ) {
+      this.samples.shift();
+    }
+  }
+
+  /** Slope in percent, or null until GRADE_WINDOW_M has been ridden. */
+  get percent(): number | null {
+    if (this.samples.length < 2) return null;
+    const oldest = this.samples[0];
+    const newest = this.samples[this.samples.length - 1];
+    const run = newest.dist - oldest.dist;
+    if (run < GRADE_WINDOW_M) return null;
+    return ((newest.alt - oldest.alt) / run) * 100;
+  }
+}
