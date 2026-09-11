@@ -253,16 +253,38 @@ export function RidesPanel() {
         className={cn(
           'fixed top-0 right-0 h-full w-[280px] bg-white shadow-[-2px_0_5px_rgba(0,0,0,0.1)] z-[950] overflow-hidden transition-transform duration-300 ease-in-out flex flex-col',
           'max-md:w-full max-md:max-w-[320px]',
+          isRecording && 'w-screen max-w-none max-md:max-w-none',
           isOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none',
         )}
       >
-        <div className="px-4 pb-2 border-b border-gray-200 pt-[calc(1rem+env(safe-area-inset-top))]">
-          <h2 className="m-0 text-base font-semibold text-gray-700">
-            My Rides
+        <div
+          className={cn(
+            'px-4 pb-2 border-b border-gray-200 pt-[calc(1rem+env(safe-area-inset-top))]',
+            isRecording && 'px-6 pb-4 landscape:py-3',
+          )}
+        >
+          <h2
+            className={cn(
+              'm-0 text-base font-semibold text-gray-700',
+              isRecording &&
+                'flex items-center gap-2 text-xl text-gray-800 landscape:text-lg',
+            )}
+          >
+            {isRecording && <PulseDot />}
+            {isRecording
+              ? isPaused
+                ? 'Ride paused'
+                : 'Recording ride'
+              : 'My Rides'}
           </h2>
         </div>
 
-        <div className="relative flex-1 overflow-y-auto px-4 py-3">
+        <div
+          className={cn(
+            'relative flex-1 overflow-y-auto px-4 py-3',
+            isRecording && 'flex overflow-hidden p-0',
+          )}
+        >
           {toastMessage && (
             <div
               className={cn(
@@ -304,60 +326,49 @@ export function RidesPanel() {
               </div>
             </div>
           )}
-          <RideHistory
-            selectedRideId={selectedRideId}
-            onRideSelect={handleRideSelect}
-            isRecording={isRecording}
-          />
+          {isRecording ? (
+            <RecordingDashboard
+              elapsedTime={elapsedTime}
+              distance={liveDistance}
+              elevationGain={liveElevationGain}
+              speed={liveSpeed}
+              elevation={liveElevation}
+            />
+          ) : (
+            <RideHistory
+              selectedRideId={selectedRideId}
+              onRideSelect={handleRideSelect}
+            />
+          )}
         </div>
 
         {/* Recording controls */}
-        <div className="px-4 py-3 border-t border-gray-200">
+        <div
+          className={cn(
+            'px-4 py-3 border-t border-gray-200',
+            isRecording &&
+              'px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4 landscape:py-3 landscape:pb-[calc(.75rem+env(safe-area-inset-bottom))]',
+          )}
+        >
           {isRecording ? (
-            <div className="flex flex-col gap-2.5">
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <RecordingStat
-                  value={formatElapsed(elapsedTime)}
-                  label="Time"
-                />
-                <RecordingStat
-                  value={formatDistance(liveDistance)}
-                  label="Distance"
-                />
-                <RecordingStat
-                  value={formatElevation(liveElevationGain)}
-                  label="Climbing"
-                />
-                <RecordingStat
-                  value={liveSpeed == null ? '— km/h' : formatSpeed(liveSpeed)}
-                  label="Speed"
-                />
-                <RecordingStat
-                  value={
-                    liveElevation == null
-                      ? '— m'
-                      : formatElevation(liveElevation)
-                  }
-                  label="Elevation"
-                />
-              </div>
-              <div className="flex gap-2">
+            <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 landscape:max-w-4xl landscape:flex-row landscape:items-center">
+              <div className="flex flex-1 gap-3">
                 <button
                   type="button"
-                  className="flex-1 p-2.5 rounded-lg text-sm font-semibold cursor-pointer border-none transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  className="min-h-14 flex-1 rounded-xl border-none bg-gray-100 p-3 text-base font-semibold text-gray-700 transition-colors hover:bg-gray-200"
                   onClick={isPaused ? resumeRecording : pauseRecording}
                 >
                   {isPaused ? 'Resume' : 'Pause'}
                 </button>
                 <button
                   type="button"
-                  className="flex-1 p-2.5 rounded-lg text-sm font-semibold cursor-pointer border-none transition-colors bg-red-500 text-white hover:bg-red-600"
+                  className="min-h-14 flex-1 rounded-xl border-none bg-red-500 p-3 text-base font-semibold text-white transition-colors hover:bg-red-600"
                   onClick={handleRecordClick}
                 >
                   Finish
                 </button>
               </div>
-              <p className="text-[11px] text-gray-400 text-center mt-1 leading-tight">
+              <p className="text-center text-xs leading-tight text-gray-400 landscape:max-w-48">
                 Keep your phone on to track GPS. The screen will stay on.
               </p>
             </div>
@@ -379,11 +390,47 @@ export function RidesPanel() {
 
 function RecordingStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex flex-col flex-1">
-      <span className="text-base font-bold tabular-nums text-gray-700">
+    <div className="flex h-full min-h-0 flex-col items-center justify-center rounded-2xl bg-gray-50 p-3 text-center landscape:p-2">
+      <span className="text-[clamp(1.75rem,7vw,4.5rem)] font-bold leading-none tabular-nums tracking-tight text-gray-800 landscape:text-[clamp(1.5rem,4vw,3.75rem)]">
         {value}
       </span>
-      <span className="text-[11px] text-gray-500 mt-px">{label}</span>
+      <span className="mt-2 text-sm font-medium uppercase tracking-wide text-gray-500 landscape:mt-1">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+interface RecordingDashboardProps {
+  elapsedTime: number;
+  distance: number;
+  elevationGain: number;
+  speed: number | null;
+  elevation: number | null;
+}
+
+function RecordingDashboard({
+  elapsedTime,
+  distance,
+  elevationGain,
+  speed,
+  elevation,
+}: RecordingDashboardProps) {
+  return (
+    <div className="mx-auto grid h-full w-full max-w-5xl grid-cols-2 grid-rows-3 gap-3 p-4 sm:gap-4 sm:p-6 landscape:grid-cols-5 landscape:grid-rows-1 landscape:items-stretch landscape:gap-3 landscape:p-4">
+      <div className="col-span-2 min-h-0 landscape:col-span-1">
+        <RecordingStat value={formatElapsed(elapsedTime)} label="Time" />
+      </div>
+      <RecordingStat value={formatDistance(distance)} label="Distance" />
+      <RecordingStat value={formatElevation(elevationGain)} label="Climbing" />
+      <RecordingStat
+        value={speed == null ? '— km/h' : formatSpeed(speed)}
+        label="Speed"
+      />
+      <RecordingStat
+        value={elevation == null ? '— m' : formatElevation(elevation)}
+        label="Elevation"
+      />
     </div>
   );
 }
