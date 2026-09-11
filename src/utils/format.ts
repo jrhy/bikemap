@@ -33,6 +33,11 @@ export function formatSpeed(mps: number): string {
   return `${(mps * KMH_PER_MPS).toFixed(1)} km/h`;
 }
 
+export function formatGrade(percent: number): string {
+  const rounded = Math.round(percent);
+  return `${rounded > 0 ? '+' : ''}${rounded}%`;
+}
+
 export function formatElevation(meters: number): string {
   return `${Math.round(meters)} m`;
 }

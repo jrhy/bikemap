@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { formatDistance, formatElevation, formatSpeed } from './format';
+import {
+  formatDistance,
+  formatElevation,
+  formatGrade,
+  formatSpeed,
+} from './format';
 
 describe('metric display units', () => {
   it.each([
@@ -10,5 +15,19 @@ describe('metric display units', () => {
     [formatElevation, -12.6, '-13 m'],
   ])('formats %s(%s) as %s', (format, value, expected) => {
     expect(format(value)).toBe(expected);
+  });
+});
+
+describe('formatGrade', () => {
+  it('formats positive grades with an explicit sign', () => {
+    expect(formatGrade(12.4)).toBe('+12%');
+  });
+
+  it('formats negative grades with a minus sign', () => {
+    expect(formatGrade(-3.6)).toBe('-4%');
+  });
+
+  it('formats flat grades without a sign', () => {
+    expect(formatGrade(0.2)).toBe('0%');
   });
 });
