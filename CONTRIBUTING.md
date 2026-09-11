@@ -43,7 +43,7 @@ Run `pnpm lint:fix` to auto-fix most issues. Beyond that:
 
 - Use the `function` keyword for components and pure functions.
 - Prefer `interface` over `type` aliases; avoid `enum` (use object maps).
-- Functional components only; keep `'use client'` to the components that need it.
+- Functional components only.
 - File order: exported component → subcomponents → helpers → static content → types.
 - Use the existing icon libraries (Font Awesome, lucide-react) — don't add more.
 - Style with Tailwind utilities; directories use `lowercase-dash` names.

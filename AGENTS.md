@@ -314,7 +314,7 @@ The map can be framed on third-party sites via `<iframe src="https://jrhy.github
 - Do not include "Co-Authored-By: Claude" in commit messages
 - Use `function` keyword for pure functions and components
 - Prefer interfaces over type aliases; avoid enums (use maps)
-- Use functional components; minimize `use client`
+- Use functional components
 - File order: exported component → subcomponents → helpers → static content → types
 - Use existing icon libraries (Font Awesome or lucide-react) - don't add new ones
 - Directories use lowercase-dash naming

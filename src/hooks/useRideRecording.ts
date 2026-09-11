@@ -1,5 +1,3 @@
-'use client';
-
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { RecordedRide, RidePoint, StoredRidePoint } from '../data/ride';
