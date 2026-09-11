@@ -21,6 +21,7 @@ import {
   ELEVATION_SPIKE_MAX_RUN as ALT_SPIKE_MAX_RUN,
   ELEVATION_MIN_DISTANCE as ALT_MIN_DIST_M,
   ELEVATION_MAX_ALT_ACCURACY as ALT_MAX_ACCURACY,
+  GradeWindow,
 } from '../utils/ride-stats';
 import {
   saveRide,
@@ -48,6 +49,8 @@ interface UseRideRecordingReturn {
   liveElevationGain: number; // meters
   liveSpeed: number | null; // m/s; null when unavailable
   liveElevation: number | null; // meters, existing EMA-smoothed GPS altitude
+  grade: number | null; // slope percent over the trailing GRADE_WINDOW_M; null until enough ride exists
+  pausedSeconds: number; // accumulated pause time (manual + auto)
   startRecording: () => void;
   pauseRecording: () => void;
   resumeRecording: () => void;
@@ -69,6 +72,9 @@ export function useRideRecording(
   const [liveElevationGain, setLiveElevationGain] = useState(0);
   const [liveSpeed, setLiveSpeed] = useState<number | null>(null);
   const [liveElevation, setLiveElevation] = useState<number | null>(null);
+  const [grade, setGrade] = useState<number | null>(null);
+  const [pausedSeconds, setPausedSeconds] = useState(0);
+  const gradeWindowRef = useRef(new GradeWindow());
   const lastFixTimeRef = useRef<number | null>(null);
   const distanceRef = useRef(0);
   const elevGainRef = useRef(0);
@@ -161,6 +167,9 @@ export function useRideRecording(
     setLiveElevationGain(0);
     setLiveSpeed(null);
     setLiveElevation(null);
+    setGrade(null);
+    setPausedSeconds(0);
+    gradeWindowRef.current.reset();
     lastFixTimeRef.current = null;
     segmentBreakRef.current = false;
   }, []);
@@ -256,6 +265,13 @@ export function useRideRecording(
           ) {
             distanceRef.current += segDist;
             setLiveDistance(distanceRef.current);
+            if (emaAltRef.current !== null) {
+              gradeWindowRef.current.push(
+                distanceRef.current,
+                emaAltRef.current,
+              );
+              setGrade(gradeWindowRef.current.percent);
+            }
           }
         }
 
@@ -268,6 +284,8 @@ export function useRideRecording(
           emaAltRef.current = null;
           altAnchorRef.current = null;
           distSinceAnchorRef.current = 0;
+          gradeWindowRef.current.reset();
+          setGrade(null);
         }
 
         if (
@@ -357,6 +375,7 @@ export function useRideRecording(
       const paused = pausedRef.current
         ? pausedTimeRef.current + (Date.now() - pauseStartRef.current)
         : pausedTimeRef.current;
+      setPausedSeconds(Math.floor(paused / 1000));
       const next = Math.floor(
         (Date.now() - startTimeRef.current - paused) / 1000,
       );
@@ -400,6 +419,9 @@ export function useRideRecording(
     setLiveElevationGain(0);
     setLiveSpeed(null);
     setLiveElevation(null);
+    setGrade(null);
+    setPausedSeconds(0);
+    gradeWindowRef.current.reset();
     lastFixTimeRef.current = null;
     setIsRecording(true);
     setIsPaused(false);
@@ -623,6 +645,9 @@ export function useRideRecording(
 
     setLiveSpeed(null);
     setLiveElevation(null);
+    setGrade(null);
+    setPausedSeconds(0);
+    gradeWindowRef.current.reset();
     lastFixTimeRef.current = null;
     setLiveDistance(dist);
     setLiveElevationGain(elev.gain);
@@ -673,6 +698,8 @@ export function useRideRecording(
     liveElevationGain,
     liveSpeed,
     liveElevation,
+    grade,
+    pausedSeconds,
     startRecording,
     pauseRecording,
     resumeRecording,

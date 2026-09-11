@@ -127,6 +127,44 @@ describe('useRideRecording', () => {
     expect(result.current.liveElevation).toBeNull();
   });
 
+  it('reports grade once a full window has been ridden', async () => {
+    const { result } = renderHook(() => useRideRecording());
+    act(() => result.current.startRecording());
+
+    // First fix — EMA baseline, no window yet
+    act(() => simulatePosition(-85.3, 35, { altitude: 200 }));
+    expect(result.current.grade).toBeNull();
+
+    // Steady climb: 1 m of altitude per 100 m fix (haversine mock; EMA alpha
+    // 0.1 converges toward 1% slope)
+    for (let i = 1; i <= 40; i++) {
+      act(() => simulatePosition(-85.3, 35, { altitude: 200 + i }));
+    }
+    expect(result.current.grade).not.toBeNull();
+    expect(result.current.grade!).toBeGreaterThan(0.5);
+    expect(result.current.grade!).toBeLessThan(1.5);
+
+    await act(() => result.current.stopRecording());
+  });
+
+  it('clears grade after a pause/resume segment break until the window refills', async () => {
+    const { result } = renderHook(() => useRideRecording());
+    act(() => result.current.startRecording());
+    act(() => simulatePosition(-85.3, 35, { altitude: 200 }));
+    for (let i = 1; i <= 40; i++) {
+      act(() => simulatePosition(-85.3, 35, { altitude: 200 + i }));
+    }
+    expect(result.current.grade).not.toBeNull();
+
+    act(() => result.current.pauseRecording());
+    act(() => result.current.resumeRecording());
+    // First post-resume fix is a segment start — the window resets
+    act(() => simulatePosition(-85.3, 35, { altitude: 240 }));
+    expect(result.current.grade).toBeNull();
+
+    await act(() => result.current.stopRecording());
+  });
+
   it('starts with default state', () => {
     const { result } = renderHook(() => useRideRecording());
 
