@@ -92,6 +92,30 @@ describe('RidesPanel', () => {
     expect(screen.getByText('Pause')).toBeInTheDocument();
   });
 
+  it('replaces ride history with a full recording dashboard', () => {
+    mockHook.isRecording = true;
+    mockHook.elapsedTime = 3723;
+    mockHook.liveDistance = 12400;
+    mockHook.liveElevationGain = 318;
+    render(<RidesPanel />);
+    openPanel();
+
+    expect(screen.queryByTestId('ride-history')).not.toBeInTheDocument();
+    expect(screen.getByText('Recording ride')).toBeInTheDocument();
+    expect(screen.getByText('1:02:03')).toBeInTheDocument();
+    expect(screen.getByText('12.4 km')).toBeInTheDocument();
+    expect(screen.getByText('318 m')).toBeInTheDocument();
+  });
+
+  it('announces when the full recording dashboard is paused', () => {
+    mockHook.isRecording = true;
+    mockHook.isPaused = true;
+    render(<RidesPanel />);
+    openPanel();
+
+    expect(screen.getByText('Ride paused')).toBeInTheDocument();
+  });
+
   it('calls pauseRecording when Pause clicked', () => {
     mockHook.isRecording = true;
     render(<RidesPanel />);
