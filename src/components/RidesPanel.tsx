@@ -396,7 +396,7 @@ export function RidesPanel() {
 
 function PrimaryStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex min-h-0 flex-1 basis-0 flex-col items-center justify-center">
+    <div className="flex min-h-0 flex-col items-center justify-center">
       <span className="text-[min(20vw,15dvh)] font-bold leading-none tabular-nums tracking-tight text-gray-900 landscape:text-[min(11vw,20dvh)]">
         {value}
       </span>
@@ -419,10 +419,10 @@ function TertiaryStat({
   return (
     <div className="flex min-w-0 flex-col items-center">
       <span className="flex items-baseline gap-1">
-        <span className="font-lcd text-xl leading-none text-gray-800">
+        <span className="font-lcd text-2xl leading-none text-gray-800">
           {value}
         </span>
-        <span className="text-[11px] font-medium text-gray-500">{unit}</span>
+        <span className="text-xs font-medium text-gray-500">{unit}</span>
       </span>
       <span className="mt-1.5 text-[11px] font-medium uppercase tracking-wide text-gray-400">
         {label}
@@ -453,18 +453,23 @@ function RecordingDashboard({
   const avgSpeed = elapsedTime > 0 ? distance / elapsedTime : null;
   return (
     <div className="mx-auto flex h-full w-full max-w-3xl flex-col px-6 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(4.5rem+env(safe-area-inset-top))] landscape:max-w-5xl landscape:flex-row landscape:items-stretch landscape:gap-8 landscape:px-8">
-      <PrimaryStat value={formatDistance(distance)} label="Distance" />
-      <PrimaryStat
-        value={speed == null ? '— km/h' : formatSpeed(speed)}
-        label="Speed"
-      />
+      {/* Portrait: the primaries cluster tightly and share the free space
+          above/below the pair; landscape dissolves the wrapper (display:
+          contents) so they split the row as flex siblings again. */}
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 landscape:contents">
+        <PrimaryStat value={formatDistance(distance)} label="Distance" />
+        <PrimaryStat
+          value={speed == null ? '— km/h' : formatSpeed(speed)}
+          label="Speed"
+        />
+      </div>
       {/* Portrait: one row (label · value · paused caption) to save height;
           landscape: centered column. */}
       <div className="flex items-baseline justify-center gap-3 border-t border-gray-200 py-3 landscape:w-48 landscape:flex-col landscape:items-center landscape:flex-none landscape:justify-center landscape:gap-0 landscape:border-t-0 landscape:border-l landscape:py-0 landscape:pl-8">
         <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
           Time
         </span>
-        <span className="text-[clamp(1.75rem,7vw,3.5rem)] font-bold leading-none tabular-nums tracking-tight text-gray-800 landscape:text-3xl">
+        <span className="text-[clamp(2.25rem,8vw,4.25rem)] font-bold leading-none tabular-nums tracking-tight text-gray-800 landscape:text-3xl">
           {formatElapsed(elapsedTime)}
         </span>
         {pausedSeconds > 0 && (
