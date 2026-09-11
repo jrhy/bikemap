@@ -69,3 +69,6 @@ scripts/.*_run.log
 
 # scratch / local-only files
 tmp/
+
+# Local planning artifacts (not part of the repo)
+docs/plans/
