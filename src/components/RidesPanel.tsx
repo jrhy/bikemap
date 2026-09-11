@@ -277,9 +277,10 @@ export function RidesPanel() {
           </div>
         )}
 
-        {/* Recording overlay: status + controls replace the header/footer */}
+        {/* Recording overlay: status + controls replace the header/footer.
+            Right inset clears the fixed panel-toggle button (right-4, 44px). */}
         {isRecording && (
-          <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-2 px-4 pt-[calc(.75rem+env(safe-area-inset-top))]">
+          <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-2 pl-4 pr-16 pt-[calc(.75rem+env(safe-area-inset-top))]">
             {isPaused ? (
               <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-red-700">
                 Paused
@@ -446,18 +447,20 @@ function RecordingDashboard({
         value={speed == null ? '— km/h' : formatSpeed(speed)}
         label="Speed"
       />
-      <div className="flex flex-col items-center justify-center border-t border-gray-200 py-3 landscape:w-48 landscape:flex-none landscape:border-t-0 landscape:border-l landscape:py-0 landscape:pl-8">
+      {/* Portrait: one row (label · value · paused caption) to save height;
+          landscape: centered column. */}
+      <div className="flex items-baseline justify-center gap-3 border-t border-gray-200 py-3 landscape:w-48 landscape:flex-col landscape:items-center landscape:flex-none landscape:justify-center landscape:gap-0 landscape:border-t-0 landscape:border-l landscape:py-0 landscape:pl-8">
+        <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
+          Time
+        </span>
         <span className="text-[clamp(1.75rem,7vw,3.5rem)] font-bold leading-none tabular-nums tracking-tight text-gray-800 landscape:text-3xl">
           {formatElapsed(elapsedTime)}
         </span>
         {pausedSeconds > 0 && (
-          <span className="mt-1 text-xs tabular-nums text-gray-400">
+          <span className="text-xs tabular-nums text-gray-400">
             paused {formatElapsed(pausedSeconds)}
           </span>
         )}
-        <span className="mt-1 text-xs font-medium uppercase tracking-wide text-gray-500">
-          Time
-        </span>
       </div>
       <div className="grid grid-cols-3 gap-2 border-t border-gray-200 py-3 landscape:mt-0 landscape:flex landscape:w-64 landscape:flex-none landscape:flex-col landscape:justify-center landscape:gap-3 landscape:border-t-0 landscape:border-l landscape:py-0 landscape:pl-8">
         <TertiaryStat
