@@ -418,14 +418,14 @@ function TertiaryStat({
 }) {
   return (
     <div className="flex min-w-0 flex-col items-center">
-      <span className="flex items-baseline gap-1">
-        <span className="font-lcd text-2xl leading-none text-gray-800">
-          {value}
+      <span className="font-lcd text-[min(10.2vw,2.5rem)] leading-none text-gray-800">
+        {value}
+      </span>
+      <span className="mt-1.5 flex items-baseline gap-1">
+        <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+          {label}
         </span>
         <span className="text-xs font-medium text-gray-500">{unit}</span>
-      </span>
-      <span className="mt-1.5 text-[11px] font-medium uppercase tracking-wide text-gray-400">
-        {label}
       </span>
     </div>
   );
@@ -478,7 +478,10 @@ function RecordingDashboard({
           </span>
         )}
       </div>
-      <div className="grid grid-cols-3 gap-2 border-t border-gray-200 py-3 landscape:mt-0 landscape:flex landscape:w-64 landscape:flex-none landscape:flex-col landscape:justify-center landscape:gap-3 landscape:border-t-0 landscape:border-l landscape:py-0 landscape:pl-8">
+      {/* Column widths proportional to each stat's worst-case digit run
+          (grade -12 and avg 88.8 = 3 LCD cells, climbing 1234 = 4) so all
+          three share the same maximum font size. */}
+      <div className="grid grid-cols-[1fr_1fr_1.34fr] gap-2 border-t border-gray-200 py-3 landscape:mt-0 landscape:flex landscape:w-64 landscape:flex-none landscape:flex-col landscape:justify-center landscape:gap-3 landscape:border-t-0 landscape:border-l landscape:py-0 landscape:pl-8">
         <TertiaryStat
           value={grade == null ? '—' : String(Math.round(grade))}
           unit="%"
