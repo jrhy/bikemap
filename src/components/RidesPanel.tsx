@@ -410,10 +410,10 @@ function PrimaryStat({ value, label }: { value: string; label: string }) {
 function TertiaryStat({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex min-w-0 flex-col items-center">
-      <span className="text-lg font-semibold tabular-nums text-gray-700">
+      <span className="font-lcd text-xl leading-none text-gray-800">
         {value}
       </span>
-      <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+      <span className="mt-1.5 text-[11px] font-medium uppercase tracking-wide text-gray-400">
         {label}
       </span>
     </div>

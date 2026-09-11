@@ -10,6 +10,20 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        // 7-segment LCD digits (DSEG7); non-digit glyphs fall back to the
+        // system stack via per-glyph substitution.
+        lcd: [
+          'DSEG7',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          'Helvetica',
+          'Arial',
+          'sans-serif',
+        ],
+      },
       keyframes: {
         'location-pulse': {
           '0%': {

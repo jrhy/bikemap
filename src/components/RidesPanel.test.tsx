@@ -147,6 +147,20 @@ describe('RidesPanel', () => {
     expect(screen.queryByLabelText('Elevation')).not.toBeInTheDocument();
   });
 
+  it('renders the small stat digits in the LCD font', () => {
+    mockHook.isRecording = true;
+    mockHook.liveDistance = 12500;
+    mockHook.elapsedTime = 2700;
+    mockHook.liveElevationGain = 318;
+    render(<RidesPanel />);
+    openPanel();
+
+    const grade = screen.getByText('+2%');
+    expect(grade).toHaveClass('font-lcd');
+    expect(screen.getByText('16.7 km/h')).toHaveClass('font-lcd');
+    expect(screen.getByText('318 m')).toHaveClass('font-lcd');
+  });
+
   it('shows a dash for grade before the window fills', () => {
     mockHook.isRecording = true;
     mockHook.grade = null;
