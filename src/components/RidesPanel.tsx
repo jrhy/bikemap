@@ -16,6 +16,7 @@ import {
   formatDistance,
   formatElevation,
   formatSpeed,
+  formatGrade,
 } from '@/utils/format';
 import { RideHistory } from './sidebar/RideHistory';
 
@@ -45,6 +46,7 @@ export function RidesPanel() {
     liveElevationGain,
     liveSpeed,
     liveElevation,
+    grade,
     startRecording,
     pauseRecording,
     resumeRecording,
@@ -222,9 +224,9 @@ export function RidesPanel() {
           <span
             role="group"
             className="tabular-nums text-gray-500"
-            aria-label="Elevation"
+            aria-label="Grade"
           >
-            {liveElevation == null ? '— m' : formatElevation(liveElevation)}
+            {grade == null ? '— %' : formatGrade(grade)}
           </span>
           <div className="flex gap-1.5 ml-auto">
             <button

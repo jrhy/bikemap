@@ -15,6 +15,8 @@ function createMockHook() {
     liveElevationGain: 0,
     liveSpeed: 5,
     liveElevation: 201.9,
+    grade: 2.4,
+    pausedSeconds: 0,
     startRecording: vi.fn(),
     pauseRecording: vi.fn(),
     resumeRecording: vi.fn(),
@@ -57,7 +59,7 @@ describe('RidesPanel', () => {
     mockHook.isRecording = true;
     render(<RidesPanel />);
     expect(screen.getByLabelText('Speed')).toHaveTextContent('18.0 km/h');
-    expect(screen.getByLabelText('Elevation')).toHaveTextContent('202 m');
+    expect(screen.getByLabelText('Grade')).toHaveTextContent('+2%');
   });
 
   it('renders toggle button', () => {
