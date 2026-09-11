@@ -1,177 +1,78 @@
-# Open Bike Map
+# Bike Map
 
-<p align="center">
-  <a href="https://bikechatt.com">
-    <img src="https://img.shields.io/badge/%E2%96%B6%20Live%20Demo-bikechatt.com-2563EB?style=for-the-badge&labelColor=111827" alt="Live Demo: bikechatt.com" height="48">
-  </a>
-</p>
+A static React app for exploring bike routes and trails, recording rides, and exporting GPX files. Geographic datasets for Chattanooga and Bend are included; the app uses a neutral identity independent of the dataset.
 
-<p align="center">
-  <a href="https://github.com/kwiens/bikemap/actions/workflows/test.yml">
-    <img src="https://github.com/kwiens/bikemap/actions/workflows/test.yml/badge.svg" alt="Tests">
-  </a>
-</p>
+**Site:** [jrhy.github.io/bikemap](https://jrhy.github.io/bikemap/) (requires the first successful Pages deployment). The GitHub repository URL displays source code, not the running app.
 
-An open-source trail and bike-route platform for any community. Browse curated road and greenway routes, hundreds of mountain bike trails with elevation profiles, real-time bike share availability, and record your own rides with GPS — all in a fast, mobile-first web app you can install to your home screen.
+## Run locally
 
-The included reference deployment is configured for [Chattanooga, TN](https://bikechatt.com), but the codebase is built so a new community can fork it, swap configuration and data, and ship.
+Requires Node.js 22+ and pnpm (the version is pinned in `package.json`).
 
-<p align="center">
-  <img src="public/screenshot-splash.png" alt="Open Bike Map main view" width="45%">
-  <img src="public/screenshot-route.png" alt="Route selection view" width="45%">
-</p>
+```sh
+pnpm install
+cp .env.example .env.local
+# Add your public Mapbox token as VITE_MAPBOX_TOKEN in .env.local.
+pnpm dev
+```
 
-## Make it yours
+Open http://localhost:3000. The token is public and bundled into the browser app. Use a token authorized for the deployment's URL; never use a secret Mapbox token.
 
-Open Bike Map is a fork-and-edit, not a rewrite. Everything a community controls is pulled out of the code into a small set of well-marked files:
+## Build and publish
 
-- **`src/config/site.config.ts`** — branding (name, description, colors, PWA identity).
-- **`src/config/map.config.ts`** — geography (Mapbox style, default view, GBFS feed, region).
-- **`src/data/*`** — routes, trails, shops, and points of interest as plain typed arrays. No database, no CMS.
-- **`public/*`** — logos, icons, splash screens.
+```sh
+pnpm build
+pnpm preview
+```
 
-The full step-by-step is in **[docs/DEPLOYING.md](docs/DEPLOYING.md)**; the data-file contract is in **[docs/DATA.md](docs/DATA.md)**.
+`dist/` contains only HTML, JavaScript, CSS, icons, and data. No Node server, server functions, API routes, or database service are required in production.
+
+For a repository path, build with `BASE_PATH=/bikemap/ pnpm build`. The GitHub Pages workflow obtains the correct path automatically. See [deployment instructions](docs/DEPLOYING.md) for Pages setup and Mapbox configuration.
 
 ## Features
 
-### For riders
+- Curated cycling routes, mountain bike trails, attractions, shops, and live bike-share availability.
+- Optional nationwide OpenStreetMap trails and per-city bike-network overlays.
+- GPS recording with pause/resume, crash recovery, and local ride history.
+- Metric distance, speed, and elevation, including the live recording HUD.
+- Elevation profiles, route sharing, GPX export, and printable SVG maps.
+- Installable PWA and configurable map embeds.
 
-- **Curated bike routes** — Hand-picked road, greenway, and connector routes styled in Mapbox Studio with descriptions, distance, and zoom-to-fit bounds.
-- **Mountain bike trails** — 220+ trails in the reference deployment, grouped by recreation area and region, color-coded by difficulty, with per-trail elevation profiles.
-- **Real-time bike share** — Live station availability via the [GBFS](https://gbfs.org/) standard, configurable per region.
-- **Points of interest** — Attractions, bike shops, rentals, and local resources as toggleable map layers.
-- **Live location & compass** — Tracks position and heading, with a smoothed compass heading derived from GPS readings.
-- **Installable PWA** — Manifest, service worker, custom splash screens, and an in-app install prompt for iOS and Android.
-- **Mobile-first UI** — Collapsible sidebar, touch-friendly controls, and resize handling that reflows the map.
+The map calls Mapbox, OpenStreetMap tile services, and bike-share providers directly from the browser. Terrain and precomputed elevation files are static assets. An internet connection is needed for external map services; the service worker does not provide offline tile caching.
 
-### Ride recording
+## Storage and compatibility
 
-A full client-side GPS ride tracker:
+Rides are stored in IndexedDB on the device. The recording schema, units, pause segment boundaries, and GPX coordinate/elevation conventions are unchanged. The old database name and preference keys remain internal compatibility details so existing local data is not silently abandoned.
 
-- Start, pause, resume, stop with live distance, elapsed time, and elevation gain.
-- Wake-lock keeps the screen on; accuracy gating discards bad GPS fixes.
-- Elevation smoothing (EMA + dead-band + spike filtering) with optional DEM correction against Mapbox Terrain-RGB.
-- **Crash recovery** — rides are checkpointed to IndexedDB and recoverable after a crash or tab close.
-- **Background-gap detection** — recording pauses gracefully when GPS goes silent.
-- Rides save locally to IndexedDB; browse history, view per-ride detail, and export as **GPX**.
-
-### For curators / community maintainers
-
-- **Two config files** drive geography and branding; content is plain TypeScript in `src/data/` — see [docs/DATA.md](docs/DATA.md).
-- **Trail tooling** — Python scripts extract trail geometry from a Mapbox tileset and sample elevation from Terrain-RGB to generate per-trail profiles. See [docs/DEPLOYING.md](docs/DEPLOYING.md).
-- **GPX export** — download rides and routes as standard GPX 1.1 files.
+Browser storage belongs to the origin: moving to GitHub Pages does not transfer rides from another hostname. Export rides as GPX before clearing storage or retiring a previous deployment.
 
 ## Architecture
 
-Built on Next.js App Router with Mapbox GL JS for rendering. The map canvas is dynamically imported with SSR disabled because Mapbox is browser-only.
+- `index.html` and `src/main.tsx`: static entry point and lazy page selection.
+- `src/app/`: map, About, Export, and Embed page components and shared styles.
+- `src/components/`: Mapbox orchestration, sidebar, recording HUD, and elevation pane.
+- `src/hooks/`: GPS recording, wake lock, URL deep links, and UI state.
+- `src/config/map.config.ts`: geographic configuration selected with `VITE_CITY_ID` at build time.
+- `src/config/site.config.ts`: neutral app identity and deployment-derived links.
+- `src/data/cities/`: datasets, with static assets under `public/data/`.
+- `src/utils/paths.ts`: deployment-aware page and asset URLs.
+- `scripts/build-static.mjs`: HTML entry files for direct page loads on any static host.
+- `.github/workflows/pages.yml`: tested production build and Pages deployment.
 
-```
-src/
-├── app/                   Next.js App Router pages
-├── components/
-│   ├── Map.tsx            Main map orchestrator (init, markers, custom events)
-│   ├── MapLegend.tsx      Sidebar container & state
-│   ├── MapMarkers.tsx     Marker factories and MarkerManager
-│   ├── RidesPanel.tsx     Ride recording controls and history
-│   ├── WelcomeModal.tsx   First-run onboarding & ride-style preference
-│   └── sidebar/           BikeRoutes, MountainBikeTrails, MapLayers,
-│                          ElevationProfile, RideHistory, RideDetail, ...
-├── config/
-│   ├── site.config.ts     Branding / app identity
-│   └── map.config.ts      Geo-specific configuration (Mapbox, GBFS, region)
-├── data/                  Routes, trails, shops, POIs — see docs/DATA.md
-├── hooks/                 useRideRecording, useWakeLock, useMapResize, useToast
-├── utils/                 ride-stats, ride-storage (IndexedDB), dem (Terrain-RGB
-│                          elevation correction), gpx, compass, map, format, ...
-├── events.ts              Custom DOM event constants
-└── lib/utils.ts           cn() — clsx + tailwind-merge
+Pages `/`, `/about/`, `/export/`, `/embed/`, and `/embed/demo/` have actual HTML files, so refreshing a nested page does not depend on an SPA rewrite. `/svg/` redirects in the browser to `/export/`. Query-string route/trail links and embed options remain supported.
 
-public/data/elevation/     Per-trail elevation JSON (per-city subdirs)
-public/terrain/            Pre-cached DEM tiles (region-specific; see docs/DEPLOYING.md)
-scripts/                   Python tooling for trails & elevation
+Choose a dataset with `VITE_CITY_ID=chattanooga` (default) or `VITE_CITY_ID=bend`. Adding datasets is described in [data documentation](docs/DATA.md). Offline data-generation scripts are tooling, not production backend services.
+
+## Validation
+
+```sh
+pnpm test:run
+pnpm lint
+BASE_PATH=/bikemap/ pnpm build
+BASE_PATH=/bikemap/ node scripts/verify-static.mjs
 ```
 
-## Tech stack
+Tests cover recording, storage, GPX, elevation, city configuration, components, and static URL behavior. The artifact check verifies nested HTML files and asset paths without relying on a dev-server fallback.
 
-- **Framework**: Next.js 16 (App Router) + React 19
-- **Map**: Mapbox GL JS 3
-- **Styling**: Tailwind CSS
-- **Icons**: Font Awesome, lucide-react
-- **Storage**: IndexedDB (rides) and cookies (settings)
-- **PWA**: Service worker + Web App Manifest
-- **Tooling**: TypeScript, Vitest, Biome + ESLint, pnpm
-- **Trail data pipeline**: Python (Mapbox vector tiles + Terrain-RGB)
+## Attribution
 
-## Getting started
-
-**Prerequisites:** Node.js 20+ and pnpm 10+.
-
-```bash
-git clone https://github.com/kwiens/bikemap.git
-cd bikemap
-pnpm install
-cp .env.example .env.local         # add your Mapbox token — see .env.example
-pnpm dev                           # http://localhost:3000
-```
-
-A free [Mapbox](https://account.mapbox.com/access-tokens/) public token is required for the map to render.
-
-### Scripts
-
-| Command | What it does |
-|---|---|
-| `pnpm dev` | Development server |
-| `pnpm build` | Production build |
-| `pnpm start` | Run production build |
-| `pnpm test` / `pnpm test:run` | Vitest (watch / single run) |
-| `pnpm lint` / `pnpm lint:fix` | Lint + format (check / auto-fix) |
-
-The Python trail-elevation pipeline is optional and documented in [docs/DEPLOYING.md](docs/DEPLOYING.md).
-
-## Testing
-
-Tests live next to source as `*.test.ts(x)` and run under Vitest with jsdom — covering GBFS integration, ride stats and storage, DEM correction, GPX building, compass smoothing, and sidebar components.
-
-Mapbox layer events cannot be triggered synthetically — for layer-click testing, dispatch the corresponding custom event from `src/events.ts` directly.
-
-## Deploying for your community
-
-Fork the repo and follow **[docs/DEPLOYING.md](docs/DEPLOYING.md)** — it walks through Mapbox setup, the two config files, the `src/data/` content ([docs/DATA.md](docs/DATA.md)), brand assets, and deploying to Vercel or any Node host.
-
-## Contributing
-
-Pull requests welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)** for dev setup and conventions, and the [Code of Conduct](CODE_OF_CONDUCT.md). For larger changes (new capabilities, a new community deployment, pipeline changes), open an issue first.
-
-## Future work
-
-### Native app wrapper for the App Store and Google Play
-
-Open Bike Map is already a Progressive Web App — it installs to the home screen, runs offline-friendly via a service worker, and ships custom splash screens. But that doesn't match how most riders look for a bike app: they search the App Store or Google Play.
-
-The plan is a thin native wrapper around the existing web app — most likely [Capacitor](https://capacitorjs.com/) — shipping the same codebase to the iOS App Store and Google Play alongside the web PWA. Beyond discoverability, it buys better background GPS for long rides, more reliable wake lock, native share sheets for GPX export, and a path to push notifications. The web app stays the source of truth; the wrapper is mechanical.
-
-### Other things on the roadmap
-
-- **Multi-community switcher** — host several cities from one deployment by selecting `mapConfig` per route or subdomain.
-- **Trail conditions / closures** — community-curated overlay so locals can flag a trail as wet, closed, or rerouted.
-- **Cloud ride sync (opt-in)** — rides are local-only today; an optional account would sync history across devices.
-- **Heatmaps from recorded rides** — anonymized aggregate to surface which informal connectors riders actually use.
-
-## Dedication
-
-This project is dedicated to the memory of our friend and collaborator Yoseph. In his honor, consider donating to [Yoseph's Bikes](https://www.whiteoakbicycle.org/yoyobikes) to help children access the joy of riding.
-
-## License
-
-GNU GPL v3 — see [LICENSE](LICENSE).
-
-## Acknowledgments
-
-- The Chattanooga cycling community for route curation, trail data, and feedback
-- [Bike Chattanooga](https://bikechatt.com) for bike-share infrastructure
-- [SORBA Chattanooga](https://www.sorbachatt.org/) and the trail builders behind the regional MTB network
-- [iFixit](https://www.ifixit.com) for supporting open-source community projects
-
----
-
-Built for community trail networks, everywhere.
+This fork retains the upstream project's geographic data and source attribution. Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) and [Mapbox](https://www.mapbox.com/about/maps/). The Bend bike network was inspired by [Bend Bikes](https://bendbikes.org/map/). The app icon uses Font Awesome's bicycle glyph. See [LICENSE](LICENSE) for the repository's license.

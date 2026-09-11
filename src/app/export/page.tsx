@@ -1,7 +1,5 @@
-'use client';
-
 import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
+import { pagePath } from '@/utils/paths';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { bikeRoutes, bikeRoutesUrl } from '@/data/geo_data';
@@ -299,9 +297,12 @@ export default function ExportPage() {
         </div>
 
         <p style={{ marginTop: '2rem' }}>
-          <Link href="/" style={{ color: '#3b82f6', textDecoration: 'none' }}>
+          <a
+            href={pagePath('/')}
+            style={{ color: '#3b82f6', textDecoration: 'none' }}
+          >
             &larr; Back to map
-          </Link>
+          </a>
         </p>
       </div>
     </div>

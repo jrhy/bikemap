@@ -1,43 +1,29 @@
-import nextConfig from 'eslint-config-next/core-web-vitals';
-import nextTypescript from 'eslint-config-next/typescript';
-import prettierConfig from 'eslint-config-prettier';
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import react from 'eslint-plugin-react';
+import hooks from 'eslint-plugin-react-hooks';
+import globals from 'globals';
+import prettier from 'eslint-config-prettier';
 
-const eslintConfig = [
+export default tseslint.config(
+  { ignores: ['node_modules/**', 'dist/**', 'public/**', '*.config.*'] },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
-    ignores: [
-      '.next/**',
-      '.next/**/*',
-      'node_modules/**',
-      'out/**',
-      'build/**',
-      'dist/**',
-      '.vercel/**',
-      'public/**',
-      '*.config.js',
-      '*.config.ts',
-      '*.config.mjs',
-      'next-env.d.ts',
-    ],
-  },
-  ...nextConfig,
-  ...nextTypescript,
-  {
-    settings: {
-      'import/resolver': {
-        typescript: {
-          alwaysTryTypes: true,
-        },
-      },
-    },
+    files: ['**/*.{js,mjs,ts,tsx}'],
+    languageOptions: { globals: { ...globals.browser, ...globals.node } },
   },
   {
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: { react, 'react-hooks': hooks },
+    settings: { react: { version: 'detect' } },
     rules: {
-      // Disable new react-hooks v7 rules until pre-existing patterns are refactored
-      'react-hooks/set-state-in-effect': 'off',
-      'react-hooks/refs': 'off',
+      ...react.configs.recommended.rules,
+      ...react.configs['jsx-runtime'].rules,
+      'react/prop-types': 'off',
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
     },
   },
-  prettierConfig,
-];
-
-export default eslintConfig;
+  prettier,
+);

@@ -38,9 +38,7 @@ body {
   overscroll-behavior: none;
 }
 
-/* Next.js app wrapper */
-body > div,
-#__next,
+/* Application root */
 #root {
   overflow: hidden;
   position: fixed;

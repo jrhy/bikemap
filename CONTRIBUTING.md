@@ -1,8 +1,8 @@
-# Contributing to Open Bike Map
+# Contributing to Bike Map
 
-Thanks for your interest in improving Open Bike Map. This guide covers
+Thanks for your interest in improving Bike Map. This guide covers
 contributing to the codebase. If you want to stand up a deployment for your own
-community, see the README's "Deploying for your community" section.
+community, see [the static deployment guide](docs/DEPLOYING.md).
 
 ## Ground rules
 
@@ -13,10 +13,10 @@ community, see the README's "Deploying for your community" section.
 
 ## Development setup
 
-**Prerequisites:** Node.js 20+ and pnpm 10+.
+**Prerequisites:** Node.js 22+ and pnpm 10+.
 
 ```bash
-git clone https://github.com/kwiens/bikemap.git
+git clone https://github.com/jrhy/bikemap.git
 cd bikemap
 pnpm install
 cp .env.example .env.local      # add your Mapbox token — see .env.example

@@ -1,7 +1,5 @@
-'use client';
-
 import { useEffect, useRef, useState, memo, useCallback } from 'react';
-import dynamic from 'next/dynamic';
+import { lazy, Suspense } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { MapLegendProvider } from '@/components/MapLegend';
 import { EmbedAttribution } from '@/components/EmbedAttribution';
@@ -74,9 +72,8 @@ import { HeadingSmoother } from '@/utils/compass';
 // Ride recording is unreachable in embed mode, and its subtree (history, GPX,
 // ride stats and storage) is a sizeable chunk to make a partner's page
 // download. Loading it lazily keeps it out of the /embed request entirely.
-const RidesPanel = dynamic(
-  () => import('@/components/RidesPanel').then((m) => m.RidesPanel),
-  { ssr: false },
+const RidesPanel = lazy(() =>
+  import('@/components/RidesPanel').then((m) => ({ default: m.RidesPanel })),
 );
 
 // Recenter pause durations: how long to suppress auto-centering after
@@ -87,14 +84,14 @@ const PAUSE_GESTURE_MS = 10000;
 // Initialize Mapbox access token from config
 mapboxgl.accessToken = mapConfig.mapbox.accessToken;
 
-// NEXT_PUBLIC_* values are inlined at build time, so a deployment built before
+// VITE_* values are inlined at build time, so a deployment built before
 // the variable was set stays broken until it is rebuilt — no amount of fixing
 // the dashboard changes an existing build.
 const hasMapboxToken = Boolean(mapConfig.mapbox.accessToken);
 
 if (!hasMapboxToken) {
   console.warn(
-    'NEXT_PUBLIC_MAPBOX_TOKEN is not set — the map will fail to load. ' +
+    'VITE_MAPBOX_TOKEN is not set — the map will fail to load. ' +
       'Copy .env.example to .env.local and add a Mapbox token. ' +
       'On a deployment, set it for this environment and then redeploy: the ' +
       'token is baked in at build time, so an existing build keeps failing.',
@@ -1767,7 +1764,11 @@ export default function BikeMap() {
       <div className="w-screen h-full relative overflow-visible">
         <MapboxMap />
         {/* Ride recording needs geolocation + persistent storage — not for embeds */}
-        {!isEmbed && <RidesPanel />}
+        {!isEmbed && (
+          <Suspense fallback={null}>
+            <RidesPanel />
+          </Suspense>
+        )}
       </div>
     </MapLegendProvider>
   );

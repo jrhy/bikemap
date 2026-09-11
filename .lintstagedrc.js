@@ -1,8 +1,8 @@
-module.exports = {
+export default {
   '*.{js,jsx,ts,tsx}': [
     'eslint --fix --no-warn-ignored --max-warnings 0',
     // --no-errors-on-unmatched: staged files Biome ignores (e.g. the
-    // auto-generated next-env.d.ts) must not fail the commit.
+    // generated declaration files) must not fail the commit.
     'biome lint --write --unsafe --no-errors-on-unmatched',
     'biome format --write --no-errors-on-unmatched',
   ],

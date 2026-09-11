@@ -1,3 +1,4 @@
+import { pagePath } from '@/utils/paths';
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -18,7 +19,7 @@ function ExternalLink({
   const isExternal = href.startsWith('http');
   return (
     <a
-      href={href}
+      href={isExternal ? href : pagePath(href)}
       {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
       className="text-blue-500 no-underline font-medium hover:underline"
     >
@@ -76,7 +77,7 @@ export function InformationSection() {
               onClick={
                 resource.url.startsWith('/')
                   ? () => {
-                      window.location.href = resource.url;
+                      window.location.href = pagePath(resource.url);
                     }
                   : undefined
               }
@@ -85,9 +86,7 @@ export function InformationSection() {
                   {renderDescriptionWithLink(
                     resource.description,
                     resource.url,
-                    resource.description.includes('iFixit')
-                      ? 'iFixit'
-                      : resource.name,
+                    resource.name,
                   )}
                   {resource.secondaryDescription &&
                     resource.secondaryUrl &&

@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { MAP_EVENTS } from '@/events';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';

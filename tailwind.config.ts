@@ -6,6 +6,7 @@ const config: Config = {
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/main.tsx',
   ],
   theme: {
     extend: {
@@ -86,8 +87,8 @@ const config: Config = {
       },
       colors: {
         // App brand colors
-        'app-primary': '#c3f44d',
-        'app-secondary': '#1a434e',
+        'app-primary': '#dbeafe',
+        'app-secondary': '#1e3a8a',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {

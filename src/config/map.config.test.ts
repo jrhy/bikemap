@@ -1,16 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import {
-  cityConfigs,
-  cityIdForHostname,
-  mapConfig,
-  parseCityId,
-  resolveActiveCityId,
-} from './map.config';
+import { cityConfigs, mapConfig, parseCityId } from './map.config';
 
 describe('map.config', () => {
   describe('mapConfig', () => {
     it('should have valid mapbox configuration', () => {
-      // accessToken is sourced from NEXT_PUBLIC_MAPBOX_TOKEN at runtime, so it
+      // accessToken is sourced from VITE_MAPBOX_TOKEN at build time, so it
       // is an empty string when the env var is unset (e.g. in CI/tests).
       expect(typeof mapConfig.mapbox.accessToken).toBe('string');
       expect(mapConfig.mapbox.styleUrl).toBeDefined();
@@ -73,13 +67,6 @@ describe('map.config', () => {
   });
 
   describe('city selection', () => {
-    const hostMap = JSON.stringify({
-      'bikechatt.com': 'chattanooga',
-      'www.bikechatt.com': 'chattanooga',
-      'ridebend.org': 'bend',
-      'www.ridebend.org': 'bend',
-    });
-
     it('uses the explicit city id fallback', () => {
       expect(parseCityId('bend')).toBe('bend');
       expect(parseCityId('chattanooga')).toBe('chattanooga');
@@ -88,40 +75,5 @@ describe('map.config', () => {
       expect(parseCityId('toString')).toBe('chattanooga');
       expect(parseCityId('__proto__')).toBe('chattanooga');
     });
-
-    it('maps production hostnames to city ids', () => {
-      expect(cityIdForHostname('ridebend.org', hostMap)).toBe('bend');
-      expect(cityIdForHostname('www.ridebend.org', hostMap)).toBe('bend');
-      expect(cityIdForHostname('bikechatt.com', hostMap)).toBe('chattanooga');
-    });
-
-    it('normalizes hostnames before lookup', () => {
-      expect(cityIdForHostname('RIDEBEND.ORG:443', hostMap)).toBe('bend');
-      expect(cityIdForHostname('www.bikechatt.com.', hostMap)).toBe(
-        'chattanooga',
-      );
-    });
-
-    it('falls back when the hostname is not mapped', () => {
-      const previousCityId = process.env.NEXT_PUBLIC_CITY_ID;
-      const previousHostMap = process.env.NEXT_PUBLIC_CITY_HOST_MAP;
-      process.env.NEXT_PUBLIC_CITY_ID = 'bend';
-      delete process.env.NEXT_PUBLIC_CITY_HOST_MAP;
-
-      try {
-        expect(resolveActiveCityId('localhost')).toBe('bend');
-      } finally {
-        restoreEnv('NEXT_PUBLIC_CITY_ID', previousCityId);
-        restoreEnv('NEXT_PUBLIC_CITY_HOST_MAP', previousHostMap);
-      }
-    });
   });
 });
-
-function restoreEnv(key: string, value: string | undefined): void {
-  if (value === undefined) {
-    delete process.env[key];
-    return;
-  }
-  process.env[key] = value;
-}

@@ -19,14 +19,10 @@ export const localResources: LocalResource[] = [
   {
     name: 'About This Map',
     description:
-      'This map is a guide to the best bike routes in Chattanooga. Made with ❤️ by iFixit, the free repair guide for every thing.',
+      'About This Map: Explore cycling routes and trails, record rides, and export GPX files.',
     url: '/about',
     icon: faInfoCircle,
     colorTheme: 'gray',
-    secondaryDescription:
-      "Dedicated to the memory of our friend and collaborator. Donate to Yoseph's Bikes to help children access the joy of riding.",
-    secondaryUrl: 'https://www.whiteoakbicycle.org/yoyobikes',
-    secondaryLinkText: "Yoseph's Bikes",
   },
   {
     name: 'Chattanooga City Bike Rentals',

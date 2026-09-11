@@ -5,8 +5,8 @@ This file provides guidance to AI coding agents when working with code in this r
 ## Commands
 
 ```bash
-pnpm dev          # Start development server at localhost:3000
-pnpm build        # Build for production
+pnpm dev          # Start Vite at localhost:3000
+pnpm build        # Build static dist/ output
 pnpm test         # Run tests in watch mode
 pnpm test:run     # Run tests once
 pnpm lint         # Run ESLint + Biome lint + Biome format checks
@@ -29,13 +29,15 @@ gh issue view [number]                              # View issue details
 
 ## Architecture
 
-This is a Next.js App Router application displaying an interactive Mapbox map of bike routes, trails, and resources. It is **multi-city**: Chattanooga, TN ([bikechatt.com](https://bikechatt.com)) and Bend, OR (ridebend.org) run from the same codebase, selected per-request by hostname (or `NEXT_PUBLIC_CITY_ID` in development).
+This is a browser-only React application built with Vite and deployed as static files. It displays an interactive Mapbox map of bike routes, trails, and resources. Geographic datasets for Chattanooga and Bend share the neutral Bike Map identity; `VITE_CITY_ID` selects the dataset at build time. `src/main.tsx` selects page components from the pathname, and `scripts/build-static.mjs` emits HTML files for every route. No Next.js, runtime application server, API routes, or server database is used.
+
+All local page and asset paths must use `pagePath` / `appPath` from `src/utils/paths.ts` so GitHub Pages subpaths work. The manifest uses relative URLs; service-worker registration in `src/main.tsx` uses the deployment base. Test both `/` and `/bikemap/` builds with `scripts/verify-static.mjs`. See `docs/DEPLOYING.md` for GitHub Pages configuration.
 
 ### Project Structure
 
 ```
 src/
-├── app/                    # Next.js App Router pages (/, /about, /export)
+├── app/                    # Browser page components (/, /about, /export, /embed)
 ├── components/
 │   ├── Map.tsx            # Main map orchestrator (init, markers, custom events, GPS)
 │   ├── MapLegend.tsx      # Sidebar container with state management
@@ -52,8 +54,8 @@ src/
 │       ├── types.ts       # Shared interfaces
 │       └── index.ts       # Barrel export
 ├── config/
-│   ├── map.config.ts      # Per-city geo config + city resolution (hostname/env)
-│   └── site.config.ts     # Per-city branding (name, URL, theme, storage prefix)
+│   ├── map.config.ts      # Per-city geo config + build-time dataset selection
+│   └── site.config.ts     # Neutral identity + deployment URL; stable legacy storage keys
 ├── data/
 │   ├── cities/            # THE city registry: types.ts (CityData contract),
 │   │   │                  # index.ts (cityDataById + activeCityData)
@@ -75,7 +77,7 @@ src/
 │   ├── dem.ts             # Ride elevation correction (pre-cached z13 tiles)
 │   ├── osm-elevation.ts   # OSM trail elevation (live z14 tiles + precomputed)
 │   ├── ride-stats.ts, ride-storage.ts (IndexedDB), gpx.ts, compass.ts
-│   ├── request-hostname.ts # Server-side hostname resolution (shared by layout/manifest/about)
+│   ├── paths.ts           # Base-aware local asset URLs and page paths
 │   └── format.ts, settings.ts, string.ts, svg.ts, html.ts
 ├── events.ts              # MAP_EVENTS — all custom DOM event names
 └── lib/utils.ts           # cn() — clsx + tailwind-merge
@@ -85,14 +87,14 @@ src/
 
 - **`src/data/cities/types.ts`** defines `CityData` — the contract for what a city provides (routes, features, resources, MTB trail config, regionFor, optional `bikeNetworkUrl`/`bikeRoutesUrl`).
 - **`src/data/cities/index.ts`** registers cities in `cityDataById` and exposes `activeCityData`.
-- **City resolution** happens in `map.config.ts`: `resolveActiveCityId()` checks the hostname against `NEXT_PUBLIC_CITY_HOST_MAP`, falling back to `NEXT_PUBLIC_CITY_ID`, then Chattanooga. `parseCityId` derives valid ids from `cityConfigs` keys — adding a city to the registry is sufficient. Server components (`layout.tsx`, `manifest.ts`, `about/page.tsx`) resolve per-request via `getRequestHostname()`; client code binds `activeCityData` at module load (works because the map is client-only).
+- **City resolution** happens in `map.config.ts`: `parseCityId(import.meta.env.VITE_CITY_ID)` selects the dataset at build time, defaulting to Chattanooga. There is no hostname routing or SSR. The city registry and map configuration must stay in sync.
 - **Style ownership** (`src/data/mapbox-style.ts`): the shared Mapbox Studio style is Chattanooga's. `hiddenStyleLayerIdsFor(city)` computes which style-baked route layers a city must hide (everything it doesn't own) — a new city never imports another city's data.
 - **Per-city static data** lives under `public/data/<city>/` (GeoJSON) and `public/data/elevation/<city>/` (per-trail elevation JSONs — city-scoped so same-named trails can't collide).
-- Adding a city: extend `CityId`, add a `MapConfig` + `SiteConfig`, create `src/data/cities/<city>/`, register it in `cityDataById`, add the hostname to `NEXT_PUBLIC_CITY_HOST_MAP`, and provide `public/data/<city>/` assets.
+- Adding a city: extend `CityId`, add a `MapConfig`, create `src/data/cities/<city>/`, register it in `cityDataById`, and provide `public/data/<city>/` assets. Select it with `VITE_CITY_ID`; app branding is shared.
 
 ### Core Data Flow
 
-1. **Page Entry** (`src/app/page.tsx`): Dynamically imports Map component with SSR disabled (Mapbox requires browser)
+1. **Page Entry** (`src/main.tsx`): Lazily loads the browser page component for each path; the Home page imports Map. No SSR or router service is involved.
 2. **Map Component** (`src/components/Map.tsx`): Main orchestrator that initializes Mapbox, manages markers, and handles custom events
 3. **Data Sources** (`src/data/`):
    - `geo_data.ts`: barrel re-exporting the **active city's** data (`bikeRoutes`, `mapFeatures`, `bikeResources`, `mountainBikeTrails`, `elevationBasePath`, ...) — components import from here and stay city-agnostic
@@ -331,14 +333,14 @@ clicked way, those stats drive the pane's **headline numbers** (via
 
 ### Embed Mode (`/embed`)
 
-The map can be framed on third-party sites via `<iframe src="https://bikechatt.com/embed?...">`. `EmbedSnippetBuilder` (`src/components/embed/`) takes its routes and available layers as a prop from `embedBuilderConfig()` (`src/utils/embed-options.ts`), resolved server-side from the request hostname — it must never import `@/data/geo_data`, which binds the active city at module load and so resolves to the default city during SSR. It is the self-serve setup form — controls, a live preview, and a copy-paste snippet — rendered in two places: the **About page** (the canonical place partners are pointed at) and `/embed/demo`, a mock partner page showing the embed in context. It renders no heading of its own, so each host page supplies its own; it validates `center` with the embed's own `parseCenter` so the form can't accept a value the map would drop.
+The map can be framed on third-party sites via `<iframe src="https://jrhy.github.io/bikemap/embed/?...">`. `EmbedSnippetBuilder` receives routes and available layers from `embedBuilderConfig()`, using the build-selected dataset. It is rendered on About and `/embed/demo/`. Links and previews use the deployment URL including its base path. It validates `center` with the embed parser’s own `parseCenter`.
 
 - **Everything is URL-driven.** `parseEmbedOptions` / `buildEmbedSearch` in `src/utils/embed.ts` are the single encoder/decoder for the supported params (`sidebar`, `route`, `center`, `zoom`, `layers`). Never rely on cookies or `localStorage` in embed mode — browsers drop the settings cookie (no `SameSite=None`) and partition storage inside a third-party frame. Anything that also needs a decoded param (e.g. `useUrlDeepLink`) takes it as an argument rather than re-reading the query string, so there is exactly one decoder.
 - **`layers` keeps at most one marker layer.** `attractions` / `bikeResources` / `bikeRentals` (`MARKER_LAYERS`) are a radio group in the map — `handleLayerToggle` hides the others when one is shown — so `parseLayers` keeps only the first of them and drops the rest; `bikeNetwork` is an independent line overlay and may accompany it. The snippet builder mirrors this with a radio group so a partner cannot generate an impossible combination.
 - **Embed mode skips the trail stack entirely.** `Map.tsx` gates `ensureMtnBikeSource` / `initMtnBikeLayers` / `ensureOsmTrailsSource` / `registerOsmTrailSelection` on `!isEmbed`. That keeps two vector sources and their tile traffic off the critical path on a partner's page, and — just as important — stops trail lines being clickable when there is no trails UI to show the result.
 - **`EmbedProvider` / `useEmbed()`** (`src/components/EmbedContext.tsx`) is how `Map.tsx` and `MapLegend.tsx` learn they are embedded. Outside `/embed` the context defaults to `isEmbed: false`, so the main app never branches on it. In embed mode: Casual (routes) tab only, no MTB pill, sidebar closed by default, no `RidesPanel` / `WelcomeModal` / `PwaInstallPrompt`, no cookie writes, and an `EmbedAttribution` "Open in …" link overlays the map.
-- **Framing headers** come from `embedHeaders()` in `src/utils/embed-headers.ts`, wired into `next.config.ts`. `/embed` — that exact path, not a prefix — gets `frame-ancestors` from the `EMBED_ALLOWED_ORIGINS` env var (unset = any site); every other path, `/embed/demo` included, gets `frame-ancestors 'self'`. The two `source` patterns must stay mutually exclusive: Next appends the headers of every matching rule and browsers intersect multiple CSPs, so an overlap silently applies the stricter one and blanks the frame. `EMBED_ALLOWED_ORIGINS` is read at **build** time, so changing it needs a redeploy. The Mapbox token's URL restriction keeps working because the iframe document's origin is ours.
-- **Partner snippet requirements:** `allow="geolocation; fullscreen; gyroscope; accelerometer; magnetometer"` for locate-me/compass, and an explicit height (the snippet uses `aspect-ratio`). `public/register-sw.js` skips registration inside frames.
+- **Framing headers** are a hosting responsibility. GitHub Pages cannot apply the previous per-route `frame-ancestors` policy; there is no `EMBED_ALLOWED_ORIGINS` application setting. Do not claim that framing is restricted. On a host supporting custom headers, restrict ordinary pages and configure partner origins for the exact `/embed/` route (including the base path). A CSP meta tag cannot enforce `frame-ancestors`.
+- **Partner snippet requirements:** `allow="geolocation; fullscreen; gyroscope; accelerometer; magnetometer"` for locate-me/compass, and an explicit height (the snippet uses `aspect-ratio`). `src/main.tsx` skips service-worker registration inside frames.
 - CORS is not involved: the iframe runs on our origin, so tile/GBFS/data fetches are unchanged. Parent↔iframe control, if ever needed, is a `postMessage` adapter over `MAP_EVENTS` with an origin check.
 
 ### The map-ready handshake

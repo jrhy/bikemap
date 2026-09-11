@@ -3,14 +3,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import { MAP_EVENTS } from '@/events';
 
-// Mock next/dynamic to render a simple placeholder instead of the real Map
-vi.mock('next/dynamic', () => ({
-  __esModule: true,
-  default: () => {
-    const Stub = () => <div data-testid="map-stub" />;
-    Stub.displayName = 'DynamicMap';
-    return Stub;
-  },
+vi.mock('@/components/Map', () => ({
+  default: () => <div data-testid="map-stub" />,
 }));
 
 // Mock child components

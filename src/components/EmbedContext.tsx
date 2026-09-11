@@ -1,5 +1,3 @@
-'use client';
-
 import { createContext, useContext, type ReactNode } from 'react';
 import { DEFAULT_EMBED_OPTIONS, type EmbedOptions } from '@/utils/embed';
 

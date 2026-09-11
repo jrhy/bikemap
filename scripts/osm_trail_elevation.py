@@ -65,7 +65,7 @@ ELEVATION_SMOOTH_HALF = 5  # 11-point centered window
 
 OVERPASS_URL_DEFAULT = 'https://overpass-api.de/api/interpreter'
 # Overpass rejects requests without a User-Agent (HTTP 406). Identify the tool.
-OVERPASS_HEADERS = {'User-Agent': 'bikemap-osm-elevation/1.0 (+github.com/kwiens/bikemap)'}
+OVERPASS_HEADERS = {'User-Agent': 'bikemap-osm-elevation/1.0 (+github.com/jrhy/bikemap)'}
 # When set (--overpass-ssh user@host), Overpass queries run via `ssh host curl`
 # instead of locally — used when the local IP is blocked/rate-limited. Elevation
 # (Mapbox) still fetches locally. Set in main().

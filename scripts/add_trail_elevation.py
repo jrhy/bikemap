@@ -33,10 +33,10 @@ def _read_mapbox_token():
     """Resolve the Mapbox token the same way the app does.
 
     The token is no longer a literal in map.config.ts — it comes from
-    NEXT_PUBLIC_MAPBOX_TOKEN (see .env.example). Prefer the environment, then
+    VITE_MAPBOX_TOKEN (see .env.example). Prefer the environment, then
     fall back to parsing .env.local / .env at the repo root.
     """
-    token = os.environ.get('NEXT_PUBLIC_MAPBOX_TOKEN')
+    token = os.environ.get('VITE_MAPBOX_TOKEN')
     if token and token.strip():
         return token.strip()
 
@@ -52,13 +52,13 @@ def _read_mapbox_token():
         with open(path) as f:
             for line in f:
                 line = line.strip()
-                if line.startswith('NEXT_PUBLIC_MAPBOX_TOKEN='):
+                if line.startswith('VITE_MAPBOX_TOKEN='):
                     value = line.split('=', 1)[1].strip().strip('"').strip("'")
                     if value:
                         return value
 
     print(
-        "Error: Mapbox token not found. Set NEXT_PUBLIC_MAPBOX_TOKEN in your "
+        "Error: Mapbox token not found. Set VITE_MAPBOX_TOKEN in your "
         "environment or add it to .env.local (see .env.example)."
     )
     sys.exit(1)

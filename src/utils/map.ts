@@ -1,3 +1,4 @@
+import { appPath } from '@/utils/paths';
 import mapboxgl from 'mapbox-gl';
 import type { BikeRoute, MountainBikeTrail } from '@/data/geo_data';
 import {
@@ -462,7 +463,7 @@ export function ensureMtnBikeSource(map: mapboxgl.Map): void {
         map,
         cfg.sourceId,
         cfg.geojsonUrl
-          ? { type: 'geojson', data: cfg.geojsonUrl }
+          ? { type: 'geojson', data: appPath(cfg.geojsonUrl) }
           : { type: 'vector', url: cfg.tilesetUrl as string },
       );
       addLayerOnce(map, {

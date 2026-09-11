@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useId, useRef, useState, type ReactElement } from 'react';
 import {
   buildEmbedSearch,
@@ -22,10 +20,9 @@ const IFRAME_STYLE =
 const PREVIEW_DEBOUNCE_MS = 500;
 
 export interface EmbedSnippetBuilderProps {
-  /** Absolute origin used in the copy-paste snippet, e.g. https://bikechatt.com */
+  /** Absolute deployment URL, including any repository base path */
   baseUrl: string;
-  /** Routes and layers for the city being served — resolved on the server from
-   *  the request hostname, so this works on a multi-domain deployment. */
+  /** Routes and layers for the dataset selected at build time. */
   config: EmbedBuilderConfig;
 }
 
@@ -70,8 +67,11 @@ export function EmbedSnippetBuilder({
   };
 
   const search = buildEmbedSearch(options);
-  const iframeSrc = search ? `/embed?${search}` : '/embed';
-  const absoluteSrc = `${baseUrl}${iframeSrc}`;
+  const absoluteSrc = new URL(
+    `embed/${search ? `?${search}` : ''}`,
+    `${baseUrl.replace(/\/$/, '')}/`,
+  ).href;
+  const iframeSrc = absoluteSrc;
 
   const snippet = [
     `<iframe`,

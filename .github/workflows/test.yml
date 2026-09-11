@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -67,11 +67,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build project
+      - name: Build for a repository subpath
         run: pnpm build
+        env:
+          BASE_PATH: /bikemap/
+
+      - name: Verify static output
+        run: node scripts/verify-static.mjs
+        env:
+          BASE_PATH: /bikemap/

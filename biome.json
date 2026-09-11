@@ -8,11 +8,9 @@
       "!**/lib/db/migrations",
       "!**/lib/editor/react-renderer.tsx",
       "!**/node_modules",
-      "!**/.next",
       "!**/public",
       "!**/.vercel",
-      "!**/generate-icons.html",
-      "!**/next-env.d.ts"
+      "!**/generate-icons.html"
     ]
   },
   "vcs": {

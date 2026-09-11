@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MAP_EVENTS } from '@/events';
 import { onMapReady } from '@/utils/map-ready';

@@ -3,7 +3,7 @@
 #   python -m venv .venv && source .venv/bin/activate
 #   pip install -r scripts/requirements.txt
 #
-# Only needed if you are curating mountain bike trail data — the Next.js app
+# Only needed if you are curating mountain bike trail data — the static web app
 # itself has no Python dependency.
 
 requests>=2.31      # Mapbox vector-tile + Terrain-RGB HTTP fetches

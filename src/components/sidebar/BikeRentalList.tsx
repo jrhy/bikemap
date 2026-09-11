@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect, useMemo } from 'react';
 import { faBicycle } from '@fortawesome/free-solid-svg-icons';
 import { cn } from '@/lib/utils';

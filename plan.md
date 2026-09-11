@@ -5,7 +5,7 @@ _Last updated: 2026-06-22_
 ## Context
 
 The app started as a Chattanooga bike map and is becoming a **multi-city
-platform**. City selection is wired (`NEXT_PUBLIC_CITY_ID` →
+platform**. City selection is wired (`VITE_CITY_ID` →
 `src/config/map.config.ts` + `src/data/cities/<city>/`). Bend is the first new
 city and the test of whether the pattern scales.
 
@@ -28,7 +28,7 @@ vs Chattanooga. Biggest gaps below.
 ## Phase 1 — Close the loop (do first; small, unblocks trust)
 
 - [x] **Browser smoke test for Bend — PASS (2026-06-22).** Verified on
-  `NEXT_PUBLIC_CITY_ID=bend` (:3000): region→area pane grouping with difficulty
+  `VITE_CITY_ID=bend` (:3000): region→area pane grouping with difficulty
   icons + per-trail distance/gain; `TRAIL_SELECT` applies the OSM_ID highlight,
   fetches the right `<slug>.json`, renders the elevation pane + grade gradient;
   multi-segment trails highlight as one; base filter excludes the nationwide

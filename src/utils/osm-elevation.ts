@@ -1,3 +1,4 @@
+import { appPath } from '@/utils/paths';
 // Client-side elevation + length for nationwide OSM trails.
 //
 // OSM trail tiles carry no length or elevation, so we derive both from the
@@ -203,7 +204,7 @@ export async function buildOsmElevationProfile(
 // way id in whatever region covers the clicked point; misses fall back to the
 // on-demand sampleTrailElevation above.
 
-const PRECOMPUTED_BASE = '/data/osm-elevation';
+const PRECOMPUTED_BASE = appPath('data/osm-elevation');
 
 export interface PrecomputedElevation {
   lengthMeters: number;

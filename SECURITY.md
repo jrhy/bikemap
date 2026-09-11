@@ -4,7 +4,7 @@
 
 Please **do not** open a public issue for security vulnerabilities.
 
-Report privately via GitHub's [private vulnerability reporting](https://github.com/kwiens/bikemap/security/advisories/new)
+Report privately via GitHub's [private vulnerability reporting](https://github.com/jrhy/bikemap/security/advisories/new)
 (the "Report a vulnerability" button on the repository's **Security** tab). If
 that is unavailable, email the maintainer at kyle@ifixit.com.
 

@@ -1,3 +1,4 @@
+import { appPath } from '@/utils/paths';
 /**
  * Client-side DEM elevation correction using pre-cached Mapbox Terrain-RGB tiles.
  *
@@ -28,7 +29,7 @@ async function loadTile(
   if (cached !== undefined) return cached;
 
   try {
-    const url = `/terrain/${TILE_ZOOM}/${tileX}/${tileY}.png`;
+    const url = appPath(`terrain/${TILE_ZOOM}/${tileX}/${tileY}.png`);
     const resp = await fetch(url);
     if (!resp.ok) {
       tileCache.set(key, null);

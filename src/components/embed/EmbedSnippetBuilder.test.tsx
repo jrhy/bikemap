@@ -18,7 +18,7 @@ const CONFIG = {
   ],
 } satisfies EmbedBuilderConfig;
 
-const baseUrl = 'https://bikechatt.com';
+const baseUrl = 'https://example.com/bikemap';
 
 function getSnippetText() {
   return screen.getByText(/<iframe/).closest('pre')?.textContent ?? '';
@@ -56,7 +56,7 @@ describe('EmbedSnippetBuilder', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Show live preview' }));
 
     const iframe = screen.getByTitle('Bike map preview') as HTMLIFrameElement;
-    expect(iframe.getAttribute('src')).toBe('/embed');
+    expect(iframe.getAttribute('src')).toBe(`${baseUrl}/embed/`);
   });
 
   it('loads the preview with the options chosen before it was shown', () => {
@@ -66,7 +66,9 @@ describe('EmbedSnippetBuilder', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Show live preview' }));
 
     const iframe = screen.getByTitle('Bike map preview') as HTMLIFrameElement;
-    expect(iframe.getAttribute('src')).toBe('/embed?layers=attractions');
+    expect(iframe.getAttribute('src')).toBe(
+      `${baseUrl}/embed/?layers=attractions`,
+    );
   });
 
   it('only offers layers the city can actually render', () => {
