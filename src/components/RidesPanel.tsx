@@ -407,11 +407,22 @@ function PrimaryStat({ value, label }: { value: string; label: string }) {
   );
 }
 
-function TertiaryStat({ value, label }: { value: string; label: string }) {
+function TertiaryStat({
+  value,
+  unit,
+  label,
+}: {
+  value: string;
+  unit: string;
+  label: string;
+}) {
   return (
     <div className="flex min-w-0 flex-col items-center">
-      <span className="font-lcd text-xl leading-none text-gray-800">
-        {value}
+      <span className="flex items-baseline gap-1">
+        <span className="font-lcd text-xl leading-none text-gray-800">
+          {value}
+        </span>
+        <span className="text-[11px] font-medium text-gray-500">{unit}</span>
       </span>
       <span className="mt-1.5 text-[11px] font-medium uppercase tracking-wide text-gray-400">
         {label}
@@ -464,14 +475,20 @@ function RecordingDashboard({
       </div>
       <div className="grid grid-cols-3 gap-2 border-t border-gray-200 py-3 landscape:mt-0 landscape:flex landscape:w-64 landscape:flex-none landscape:flex-col landscape:justify-center landscape:gap-3 landscape:border-t-0 landscape:border-l landscape:py-0 landscape:pl-8">
         <TertiaryStat
-          value={grade == null ? '—' : formatGrade(grade)}
+          value={grade == null ? '—' : String(Math.round(grade))}
+          unit="%"
           label="Grade"
         />
         <TertiaryStat
-          value={avgSpeed == null ? '— km/h' : formatSpeed(avgSpeed)}
+          value={avgSpeed == null ? '—' : (avgSpeed * 3.6).toFixed(1)}
+          unit="km/h"
           label="Avg"
         />
-        <TertiaryStat value={formatElevation(elevationGain)} label="Climbing" />
+        <TertiaryStat
+          value={String(Math.round(elevationGain))}
+          unit="m"
+          label="Climbing"
+        />
       </div>
     </div>
   );

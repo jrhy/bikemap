@@ -130,7 +130,8 @@ describe('RidesPanel', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('1:02:03')).toBeInTheDocument();
     expect(screen.getByText('12.4 km')).toBeInTheDocument();
-    expect(screen.getByText('318 m')).toBeInTheDocument();
+    expect(screen.getByText('318')).toBeInTheDocument();
+    expect(screen.getByText('m')).toBeInTheDocument();
   });
 
   it('renders the recording hierarchy with grade and avg speed', () => {
@@ -142,12 +143,14 @@ describe('RidesPanel', () => {
     openPanel();
 
     expect(screen.getByText('12.5 km')).toBeInTheDocument(); // distance primary
-    expect(screen.getByText('+2%')).toBeInTheDocument(); // grade
-    expect(screen.getByText('16.7 km/h')).toBeInTheDocument(); // avg = 12500 m / 2700 s
+    expect(screen.getByText('2')).toBeInTheDocument(); // grade digits (LCD)
+    expect(screen.getByText('%')).toBeInTheDocument(); // grade unit (UI font)
+    expect(screen.getByText('16.7')).toBeInTheDocument(); // avg digits (LCD)
+    expect(screen.getByText('km/h')).toBeInTheDocument(); // avg unit (UI font)
     expect(screen.queryByLabelText('Elevation')).not.toBeInTheDocument();
   });
 
-  it('renders the small stat digits in the LCD font', () => {
+  it('renders the small stat digits in the LCD font with UI-font units', () => {
     mockHook.isRecording = true;
     mockHook.liveDistance = 12500;
     mockHook.elapsedTime = 2700;
@@ -155,15 +158,20 @@ describe('RidesPanel', () => {
     render(<RidesPanel />);
     openPanel();
 
-    const grade = screen.getByText('+2%');
+    const grade = screen.getByText('2');
     expect(grade).toHaveClass('font-lcd');
-    expect(screen.getByText('16.7 km/h')).toHaveClass('font-lcd');
-    expect(screen.getByText('318 m')).toHaveClass('font-lcd');
+    expect(screen.getByText('%')).not.toHaveClass('font-lcd');
+    expect(screen.getByText('16.7')).toHaveClass('font-lcd');
+    expect(screen.getByText('km/h')).not.toHaveClass('font-lcd');
+    expect(screen.getByText('318')).toHaveClass('font-lcd');
+    expect(screen.getByText('m')).not.toHaveClass('font-lcd');
   });
 
   it('shows a dash for grade before the window fills', () => {
     mockHook.isRecording = true;
     mockHook.grade = null;
+    mockHook.liveDistance = 12500;
+    mockHook.elapsedTime = 2700;
     render(<RidesPanel />);
     openPanel();
 
